@@ -58,7 +58,7 @@
 - **小步**：全量 `typecheck` + `test:domain`；修复 lints。
 - **验证**：命令输出归档至本日志末尾「验证记录」。
 - **提交**：单条或多条语义化 commit；`git push`（若远程可用）。
-- **完成（2026-04-16）**：主交付 `ccef134`（`main`）已推送 → `git@github.com:cloudymount789/NJU-timetable.git`；随后 `64b0f00` 补充本日志中的提交/推送与回归验证记录。
+- **完成（2026-04-16）**：`main` 已推送至 `git@github.com:cloudymount789/NJU-timetable.git`；主功能交付见 commit `ccef134`，其后为文档/日志小步提交（完整历史见 `git log`）。
 
 ---
 
