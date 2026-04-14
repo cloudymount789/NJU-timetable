@@ -1,0 +1,14 @@
+---
+description: NJU Timetable — 自主实现时的工程纪律（给 Agent）
+globs:
+  - "**/*"
+alwaysApply: false
+---
+
+# 自主实现纪律
+
+1. **真源顺序**：`nju-timetable.pen`（界面）→ `requirements document.md` / `frontend-functional-spec.md` → 代码。Pencil 不可读时以文档为准，并在 `docs/DEV_LOG.md` 记录偏差。
+2. **每步必测**：至少 `npm run typecheck`；涉及 domain 时 `npm run test:domain`；重大改动补充手测路径写在 `docs/DEV_LOG.md`。
+3. **持久化**：本地快照经 `SqliteAppStateStorage`（Web 用内存）；禁止在 feature 组件直接写 SQL。
+4. **分层**：UI 只调 `src/state/actions.ts`；规则在 `@nju/domain`；类型在 `@nju/contracts`。
+5. **提交**：语义化 commit；推送前再跑一遍 typecheck + domain tests。

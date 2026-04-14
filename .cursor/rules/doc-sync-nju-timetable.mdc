@@ -1,0 +1,18 @@
+---
+description: NJU Timetable — 每次产品/原型改动后同步 prompts与双文档
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# NJU Timetable 文档同步（必做）
+
+凡修改 **产品范围**、**交互**、**`nju-timetable.pen` 原型**，或新增/调整页面与数据行为时，在同一轮改动中**按顺序**完成：
+
+1. **`prompts.md`**：在文件末尾追加**下一条连续编号**的条目（与历史1、2、…、23、24 一致），用简洁条目写清本次需求与验收要点。
+2. **`requirements document.md`**：将上述意图写入对应功能小节；若有删除入口、导航、设置项等，更新**自查表**或相关列表，保持与原型一致。
+3. **`frontend-functional-spec.md`**：更新路由清单、对应 **5.x 交互流**、**6.x 约束**等，确保实现边界与 `requirements document.md`、`nju-timetable.pen` 无冲突。
+
+**冲突处理**：以 `nju-timetable.pen` 为界面真源、`prompts.md` 为变更日志；文字文档滞后时优先补文档而非改口需求。
+
+**例外**：仅修正错别字、与产品无关的格式、不涉及行为变更时，可跳过 `prompts.md` 编号追加（但仍建议在三文档中保持一致表述）。
