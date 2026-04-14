@@ -58,6 +58,7 @@
 - **小步**：全量 `typecheck` + `test:domain`；修复 lints。
 - **验证**：命令输出归档至本日志末尾「验证记录」。
 - **提交**：单条或多条语义化 commit；`git push`（若远程可用）。
+- **完成（2026-04-16）**：`git commit` `ccef134`（`main`）；`git push origin main` 成功 → `github.com:cloudymount789/NJU-timetable.git`。
 
 ---
 
@@ -67,6 +68,8 @@
 |----------------|------|------|
 | 2026-04-15 约17:56 | `npm run typecheck` | 通过（contracts / domain / mobile） |
 | 2026-04-15 约 17:56 | `npm run test:domain` | 通过（6 tests） |
+| 2026-04-15 约 17:57 | `npm run typecheck` | 通过（提交后回归） |
+| 2026-04-15 约 17:57 | `npm run test:domain` | 通过（6 tests，提交后回归） |
 
 ### Step 1–8 实施摘要（本轮）
 
