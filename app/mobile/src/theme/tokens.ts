@@ -1,3 +1,7 @@
+/**
+ * Visual tokens sourced from `UI/nju-timetable.pen` theme variables (light / dark).
+ * Accent is driven by app settings; defaults align with pen `theme.accent` (light: #ff6347).
+ */
 export type AppearanceName = "light" | "dark";
 
 export interface ThemeTokens {
@@ -5,73 +9,103 @@ export interface ThemeTokens {
   bg: string;
   surface: string;
   surfaceMuted: string;
+  wash: string;
   border: string;
+  chrome: string;
   text: string;
   textSecondary: string;
+  textMuted: string;
+  tertiary: string;
   textTimetable: string;
   accent: string;
+  onAccent: string;
   danger: string;
   toggleTrackOff: string;
   toggleTrackOn: string;
+  glass: string;
+  divider: string;
+  gridLine: string;
+  courseTitle: string;
+  courseSubtitle: string;
+  courseRing: string;
+  /** @deprecated Prefer courseRing; kept for a few legacy call sites */
   glassBorder: string;
   glassHighlight: string;
 }
 
-const MORANDI_SWATCH: Record<string, { light: string; dark: string }> = {
-  "course.slate": { light: "#8B9AAB", dark: "#9DADB8" },
-  "course.blue": { light: "#7FA4B8", dark: "#8FB4C4" },
-  "course.teal": { light: "#6FA6A0", dark: "#7FB6B0" },
-  "course.green": { light: "#8BA88E", dark: "#9BB89E" },
-  "course.olive": { light: "#9AA37A", dark: "#AAB38A" },
-  "course.amber": { light: "#C6A676", dark: "#D6B686" },
-  "course.rose": { light: "#C8959A", dark: "#D8A5AA" },
-  "course.purple": { light: "#9B8FBF", dark: "#AB9FCF" },
+/** Pastel translucent fills — pen uses trailing `8C` (~55% alpha) on material hues */
+const COURSE_FILL: Record<string, { light: string; dark: string }> = {
+  "course.slate": { light: "#78909C8C", dark: "#78909C99" },
+  "course.blue": { light: "#BBDEFB8C", dark: "#BBDEFB99" },
+  "course.teal": { light: "#80DEEA8C", dark: "#80DEEA99" },
+  "course.green": { light: "#90CAF98C", dark: "#90CAF999" },
+  "course.olive": { light: "#DCE7758C", dark: "#DCE77599" },
+  "course.amber": { light: "#FFE0828C", dark: "#FFE08299" },
+  "course.rose": { light: "#F48FB18C", dark: "#F48FB199" },
+  "course.purple": { light: "#D1C4E98C", dark: "#D1C4E999" },
 };
 
-export function resolveCoursePaint(
-  token: string,
-  appearance: AppearanceName,
-): { fill: string; text: string } {
-  const swatch = MORANDI_SWATCH[token] ?? MORANDI_SWATCH["course.slate"]!;
-  const fill = appearance === "light" ? swatch.light : swatch.dark;
-  const text = appearance === "light" ? "#1F2933" : "#0F1720";
-  return { fill, text };
+export function resolveCoursePaint(token: string, appearance: AppearanceName): { fill: string } {
+  const swatch = COURSE_FILL[token] ?? COURSE_FILL["course.slate"]!;
+  return { fill: appearance === "light" ? swatch.light : swatch.dark };
 }
 
 export function buildThemeTokens(appearance: AppearanceName, accentHex: string): ThemeTokens {
   if (appearance === "dark") {
     return {
       appearance,
-      bg: "#0F1419",
-      surface: "#161C24",
-      surfaceMuted: "#1E2630",
-      border: "#2A3441",
-      text: "#E8EDF2",
-      textSecondary: "#9AA7B2",
-      textTimetable: "#F2F6FA",
+      bg: "#090A0E",
+      surface: "#13151C",
+      surfaceMuted: "#1E232F",
+      wash: "#1A1F2C",
+      border: "#242733",
+      chrome: "#1B2030",
+      text: "#F2F3F7",
+      textSecondary: "#8F93A1",
+      textMuted: "#9BA1B0",
+      tertiary: "#5E6372",
+      textTimetable: "#F2F3F7",
       accent: accentHex,
+      onAccent: "#FAFBFF",
       danger: "#E57373",
-      toggleTrackOff: "#2F3A46",
+      toggleTrackOff: "#252B38",
       toggleTrackOn: accentHex,
-      glassBorder: "rgba(255,255,255,0.12)",
-      glassHighlight: "rgba(255,255,255,0.06)",
+      glass: "#14181ED9",
+      divider: "#FFFFFF14",
+      gridLine: "#FFFFFF22",
+      courseTitle: "#10131C",
+      courseSubtitle: "#343948",
+      courseRing: "#FFFFFF4A",
+      glassBorder: "#FFFFFF4A",
+      glassHighlight: "#FFFFFF0F",
     };
   }
 
   return {
     appearance,
-    bg: "#F4F6F8",
+    bg: "#F2F2F7",
     surface: "#FFFFFF",
-    surfaceMuted: "#EEF1F4",
-    border: "#E1E6EB",
-    text: "#1F2933",
-    textSecondary: "#6B7785",
-    textTimetable: "#1F2933",
+    surfaceMuted: "#F7F7F8",
+    wash: "#F9F9FA",
+    border: "#D1D1D6",
+    chrome: "#E5E5EA",
+    text: "#1D1D1F",
+    textSecondary: "#636366",
+    textMuted: "#3C3C43",
+    tertiary: "#C7C7CC",
+    textTimetable: "#1D1D1F",
     accent: accentHex,
+    onAccent: "#FFFFFF",
     danger: "#D64545",
-    toggleTrackOff: "#D5DADF",
+    toggleTrackOff: "#E9E9EA",
     toggleTrackOn: accentHex,
-    glassBorder: "rgba(15,20,25,0.08)",
-    glassHighlight: "rgba(255,255,255,0.65)",
+    glass: "#FFFFFFA6",
+    divider: "#C7C7CC40",
+    gridLine: "#FFFFFF44",
+    courseTitle: "#151824",
+    courseSubtitle: "#3D4356",
+    courseRing: "#FFFFFF99",
+    glassBorder: "#FFFFFF99",
+    glassHighlight: "#FFFFFF55",
   };
 }

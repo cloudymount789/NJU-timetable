@@ -4,9 +4,16 @@ import { useColorScheme, type ColorSchemeName } from "react-native";
 import { useAppStore } from "@/state/store";
 import { type AppearanceName, type ThemeTokens, buildThemeTokens } from "./tokens";
 
+export interface AppFonts {
+  regular?: string;
+  semibold?: string;
+  bold?: string;
+}
+
 export interface ThemeContextValue {
   appearance: AppearanceName;
   tokens: ThemeTokens;
+  fonts: AppFonts;
 }
 
 const ThemeContext = React.createContext<ThemeContextValue | null>(null);
@@ -19,7 +26,12 @@ function resolveAppearance(settings: AppSettings, system: ColorSchemeName): Appe
   return settings.themeMode === "dark" ? "dark" : "light";
 }
 
-export function AppThemeProvider(props: { children: React.ReactNode }): React.JSX.Element {
+const defaultFonts: AppFonts = {};
+
+export function AppThemeProvider(props: {
+  children: React.ReactNode;
+  fonts?: AppFonts;
+}): React.JSX.Element {
   const settings = useAppStore((store) => store.state.settings);
   const systemScheme = useColorScheme();
   const appearance = resolveAppearance(settings, systemScheme);
@@ -27,8 +39,9 @@ export function AppThemeProvider(props: { children: React.ReactNode }): React.JS
     () => buildThemeTokens(appearance, settings.accentColor),
     [appearance, settings.accentColor],
   );
+  const fonts = props.fonts ?? defaultFonts;
 
-  const value = React.useMemo(() => ({ appearance, tokens }), [appearance, tokens]);
+  const value = React.useMemo(() => ({ appearance, tokens, fonts }), [appearance, tokens, fonts]);
 
   return <ThemeContext.Provider value={value}>{props.children}</ThemeContext.Provider>;
 }

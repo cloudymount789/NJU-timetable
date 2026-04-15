@@ -5,7 +5,7 @@ export function createDefaultSettings(): AppSettings {
   return {
     themeMode: "light",
     followSystem: false,
-    accentColor: "#5C8D8D",
+    accentColor: "#ff6347",
     hideWeekend: false,
     hideEmptyRows: false,
     semesterStartDate: new Date().toISOString(),

@@ -67,7 +67,7 @@ export default function SettingsScreen(): React.JSX.Element {
             <TextInput
               autoCapitalize="none"
               onChangeText={setAccentDraft}
-              placeholder="#5C8D8D"
+              placeholder="#ff6347"
               placeholderTextColor={tokens.textSecondary}
               style={[styles.input, { borderColor: tokens.border, color: tokens.text, backgroundColor: tokens.surface }]}
               value={accentDraft}

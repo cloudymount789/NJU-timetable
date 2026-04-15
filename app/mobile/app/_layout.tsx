@@ -1,3 +1,9 @@
+import {
+  Inter_400Regular,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  useFonts,
+} from "@expo-google-fonts/inter";
 import { Stack } from "expo-router";
 import React from "react";
 import { ActivityIndicator, View } from "react-native";
@@ -7,8 +13,15 @@ import { AppThemeProvider } from "@/theme/ThemeContext";
 import { hydrateAppState, startPersistSubscription } from "@/state/persistence";
 import { useAppStore } from "@/state/store";
 
+const loadingBg = "#F2F2F7";
+
 export default function RootLayout(): React.JSX.Element {
   const hydrated = useAppStore((store) => store.hydrated);
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
 
   React.useEffect(() => {
     const storage = createDefaultAppStorage();
@@ -24,14 +37,14 @@ export default function RootLayout(): React.JSX.Element {
     };
   }, []);
 
-  if (!hydrated) {
+  if (!hydrated || !fontsLoaded) {
     return (
       <View
         style={{
           flex: 1,
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#f9fafb",
+          backgroundColor: loadingBg,
         }}
       >
         <ActivityIndicator size="large" />
@@ -41,7 +54,13 @@ export default function RootLayout(): React.JSX.Element {
 
   return (
     <SafeAreaProvider>
-      <AppThemeProvider>
+      <AppThemeProvider
+        fonts={{
+          regular: "Inter_400Regular",
+          semibold: "Inter_600SemiBold",
+          bold: "Inter_700Bold",
+        }}
+      >
         <Stack
           screenOptions={{
             headerShown: false,

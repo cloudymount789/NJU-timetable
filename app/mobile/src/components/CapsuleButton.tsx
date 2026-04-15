@@ -36,7 +36,7 @@ export function CapsuleButton(props: CapsuleButtonProps): React.JSX.Element {
       <Text
         style={[
           styles.label,
-          { color: variant === "primary" ? "#FFFFFF" : tokens.text },
+          { color: variant === "primary" ? tokens.onAccent : tokens.text },
         ]}
       >
         {props.label}

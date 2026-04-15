@@ -22,12 +22,13 @@ import {
 import { useAppStore } from "@/state/store";
 import { resolveCoursePaint } from "@/theme/tokens";
 import { useAppTheme } from "@/theme/ThemeContext";
+import { formatMonthNum, formatSlashDate, getTeachingWeekDays, isSameDay } from "@/utils/weekCalendar";
 import type { Course } from "@nju/contracts";
 import { filterCoursesForGrid } from "@nju/domain";
 
-const ROW_H = 54;
-const LEFT_COL = 52;
-const HEADER_H = 36;
+const ROW_H = 52;
+const LEFT_COL = 48;
+const MONTH_COL_W = 38;
 
 const WEEK_LABELS = ["一", "二", "三", "四", "五", "六", "日"];
 
@@ -58,7 +59,7 @@ function assignLanes(courses: Course[]): Course[][] {
 }
 
 export function TimetableScreen(): React.JSX.Element {
-  const { tokens, appearance } = useAppTheme();
+  const { tokens, appearance, fonts } = useAppTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { width } = useWindowDimensions();
@@ -69,6 +70,7 @@ export function TimetableScreen(): React.JSX.Element {
   const courses = useAppStore((s) => s.state.courses);
   const hideWeekend = useAppStore((s) => s.state.settings.hideWeekend);
   const hideEmpty = useAppStore((s) => s.state.settings.hideEmptyRows);
+  const semesterStart = useAppStore((s) => s.state.settings.semesterStartDate);
 
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [timetableOpen, setTimetableOpen] = React.useState(false);
@@ -77,7 +79,10 @@ export function TimetableScreen(): React.JSX.Element {
   const timetableCourses = courses.filter((c) => c.timetableId === selectedTimetable?.id);
   const visibleCourses = filterCoursesForGrid(timetableCourses, weekIndex);
 
-  const dayIndexes = hideWeekend ? ([1, 2, 3, 4, 5] as const) : ([1, 2, 3, 4, 5, 6, 7] as const);
+  const dayList = React.useMemo(
+    () => (hideWeekend ? [1, 2, 3, 4, 5] : [1, 2, 3, 4, 5, 6, 7]),
+    [hideWeekend],
+  );
 
   const periods = React.useMemo(() => {
     if (!hideEmpty) {
@@ -92,19 +97,33 @@ export function TimetableScreen(): React.JSX.Element {
     return DEFAULT_PERIODS.filter((p) => used.has(p.index));
   }, [hideEmpty, visibleCourses]);
 
+  const weekDays = React.useMemo(
+    () => getTeachingWeekDays(semesterStart, weekIndex),
+    [semesterStart, weekIndex],
+  );
+
+  const today = React.useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+
   const gridHeight = periods.length * ROW_H;
-  const gridWidth = Math.max(320, width) - 16;
-  const dayColW = (gridWidth - LEFT_COL) / dayIndexes.length;
+  const contentW = Math.max(320, width) - 40;
+  const gridCanvasW = contentW - LEFT_COL;
+  const dayColW = gridCanvasW / dayList.length;
 
   const openMenu = (): void => {
     setMenuOpen((v) => !v);
     setTimetableOpen(false);
   };
 
+  const monthLabel = formatMonthNum(weekDays[0] ?? today);
+
   return (
     <View style={[styles.root, { backgroundColor: tokens.bg }]}>
-      <View style={[styles.topBar, { paddingTop: insets.top + 6 }]}>
-        <View style={styles.topRow}>
+      <View style={[styles.appHeader, { paddingTop: insets.top + 10, paddingHorizontal: 16 }]}>
+        <View style={styles.headerRow1}>
           <Pressable
             accessibilityLabel="Open actions menu"
             hitSlop={8}
@@ -121,10 +140,20 @@ export function TimetableScreen(): React.JSX.Element {
             }}
             style={styles.titlePress}
           >
-            <Text style={[styles.title, { color: tokens.text }]} numberOfLines={1}>
-              {selectedTimetable?.name ?? "课表"}
+            <Text
+              style={[
+                styles.heroTitle,
+                { color: tokens.text, fontFamily: fonts.bold },
+              ]}
+              numberOfLines={1}
+            >
+              {selectedTimetable?.name ?? "我的课表"}
             </Text>
-            <Ionicons color={tokens.textSecondary} name={timetableOpen ? "chevron-up" : "chevron-down"} size={16} />
+            <Ionicons
+              color={tokens.textSecondary}
+              name={timetableOpen ? "chevron-up" : "chevron-down"}
+              size={16}
+            />
           </Pressable>
 
           <Pressable
@@ -137,41 +166,58 @@ export function TimetableScreen(): React.JSX.Element {
           </Pressable>
         </View>
 
-        <View style={styles.subRow}>
-          <Text style={[styles.month, { color: tokens.textSecondary }]}>四月 · 教学周</Text>
-          <View style={styles.weekNav}>
-            <Pressable
-              hitSlop={8}
-              onPress={() => setCurrentWeekIndex(Math.max(1, weekIndex - 1))}
-              style={styles.iconBtn}
-            >
-              <Ionicons color={tokens.text} name="chevron-back" size={18} />
-            </Pressable>
-            <Text style={[styles.weekLabel, { color: tokens.accent }]}>第 {weekIndex} 周</Text>
-            <Pressable
-              hitSlop={8}
-              onPress={() => setCurrentWeekIndex(weekIndex + 1)}
-              style={styles.iconBtn}
-            >
-              <Ionicons color={tokens.text} name="chevron-forward" size={18} />
-            </Pressable>
-          </View>
+        <View style={styles.weekSubtitleRow}>
+          <Pressable hitSlop={8} onPress={() => setCurrentWeekIndex(Math.max(1, weekIndex - 1))}>
+            <Ionicons color={tokens.textMuted} name="chevron-back" size={18} />
+          </Pressable>
+          <Text
+            style={[
+              styles.weekSubtitle,
+              { color: tokens.textSecondary, fontFamily: fonts.regular },
+            ]}
+          >
+            第 {weekIndex} 周
+          </Text>
+          <Pressable hitSlop={8} onPress={() => setCurrentWeekIndex(weekIndex + 1)}>
+            <Ionicons color={tokens.textMuted} name="chevron-forward" size={18} />
+          </Pressable>
         </View>
       </View>
 
       <Modal animationType="fade" transparent visible={menuOpen}>
         <Pressable onPress={() => setMenuOpen(false)} style={styles.menuBackdrop}>
           <View style={[styles.menuCard, { backgroundColor: tokens.surface, borderColor: tokens.border }]}>
-            <MenuRow label="导入课表" onPress={() => { setMenuOpen(false); router.push("/import"); }} />
-            <MenuRow label="界面修改" onPress={() => { setMenuOpen(false); router.push("/settings"); }} />
-            <MenuRow label="全部课程" onPress={() => { setMenuOpen(false); router.push("/courses"); }} />
+            <MenuRow
+              color={tokens.text}
+              label="导入课表"
+              onPress={() => {
+                setMenuOpen(false);
+                router.push("/import");
+              }}
+            />
+            <MenuRow
+              color={tokens.text}
+              label="界面修改"
+              onPress={() => {
+                setMenuOpen(false);
+                router.push("/settings");
+              }}
+            />
+            <MenuRow
+              color={tokens.text}
+              label="全部课程"
+              onPress={() => {
+                setMenuOpen(false);
+                router.push("/courses");
+              }}
+            />
           </View>
         </Pressable>
       </Modal>
 
       <Modal animationType="fade" transparent visible={timetableOpen}>
         <Pressable onPress={() => setTimetableOpen(false)} style={styles.menuBackdrop}>
-          <View style={[styles.menuCard, { backgroundColor: tokens.surface, borderColor: tokens.border }]}>
+          <View style={[styles.menuCardWide, { backgroundColor: tokens.surface, borderColor: tokens.border }]}>
             {timetables.map((tt) => (
               <Pressable
                 key={tt.id}
@@ -181,7 +227,13 @@ export function TimetableScreen(): React.JSX.Element {
                 }}
                 style={styles.ttRow}
               >
-                <Text style={{ color: tokens.text, fontWeight: tt.id === selectedId ? "800" : "500" }}>
+                <Text
+                  style={{
+                    color: tokens.text,
+                    fontWeight: tt.id === selectedId ? "800" : "500",
+                    fontFamily: fonts.semibold,
+                  }}
+                >
                   {tt.name}
                 </Text>
                 {tt.isPrimary ? (
@@ -201,62 +253,135 @@ export function TimetableScreen(): React.JSX.Element {
         </Pressable>
       </Modal>
 
-      <ScrollView contentContainerStyle={{ padding: 8, paddingBottom: insets.bottom + 24 }}>
-        <View style={[styles.gridWrap, { borderColor: tokens.border, width: gridWidth }]}>
-          <View style={[styles.headerRow, { height: HEADER_H }]}>
-            <View style={[styles.corner, { width: LEFT_COL, borderColor: tokens.border }]} />
-            {dayIndexes.map((d) => (
-              <View
-                key={d}
-                style={[
-                  styles.dayHead,
-                  { width: dayColW, borderColor: tokens.border },
-                ]}
-              >
-                <Text style={{ color: tokens.textSecondary, fontSize: 12 }}>周{WEEK_LABELS[d - 1]}</Text>
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={{ width: contentW, alignSelf: "center" }}>
+          <View style={[styles.dayStrip, { width: contentW }]}>
+            <BlurView
+              intensity={appearance === "dark" ? 28 : 22}
+              style={StyleSheet.absoluteFill}
+              tint={appearance === "dark" ? "dark" : "light"}
+            />
+            <View style={[styles.dayStripFill, { backgroundColor: tokens.glass }]} />
+            <View style={styles.dayStripRow}>
+              <View style={{ width: MONTH_COL_W, alignItems: "center", gap: 2 }}>
+                <Text style={[styles.monthSmall, { color: tokens.textSecondary, fontFamily: fonts.semibold }]}>
+                  {monthLabel}
+                </Text>
+                <Text
+                  style={[styles.weekTiny, { color: tokens.textSecondary, fontFamily: fonts.regular }]}
+                >
+                  第{weekIndex}周
+                </Text>
               </View>
-            ))}
+              {dayList.map((d) => {
+                const date = weekDays[d - 1];
+                const isToday = date ? isSameDay(date, today) : false;
+                return (
+                  <View
+                    key={d}
+                    style={[
+                      styles.dayHeadCell,
+                      {
+                        flex: 1,
+                        borderColor: isToday ? tokens.accent : "transparent",
+                        backgroundColor: isToday ? tokens.chrome : "transparent",
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.weekdayTiny,
+                        { color: tokens.textSecondary, fontFamily: fonts.regular },
+                      ]}
+                    >
+                      周{WEEK_LABELS[d - 1]}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.dateSmall,
+                        {
+                          color: isToday ? tokens.accent : tokens.text,
+                          fontFamily: fonts.semibold,
+                          fontWeight: isToday ? "700" : "600",
+                        },
+                      ]}
+                    >
+                      {date ? formatSlashDate(date) : "—"}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
           </View>
 
-          <View style={{ flexDirection: "row" }}>
-            <View style={{ width: LEFT_COL }}>
+          <View style={[styles.scheduleBody, { width: contentW, minHeight: gridHeight }]}>
+            <View
+              style={[
+                styles.timeCol,
+                {
+                  width: LEFT_COL,
+                  borderRightColor: tokens.border,
+                  height: gridHeight,
+                },
+              ]}
+            >
+              <BlurView
+                intensity={appearance === "dark" ? 24 : 18}
+                style={StyleSheet.absoluteFill}
+                tint={appearance === "dark" ? "dark" : "light"}
+              />
+              <View style={[styles.timeColFill, { backgroundColor: tokens.glass }]} />
               {periods.map((p) => (
                 <View
                   key={p.index}
                   style={[
-                    styles.leftCell,
-                    { height: ROW_H, borderColor: tokens.border },
+                    styles.timeCell,
+                    {
+                      height: ROW_H,
+                      borderBottomColor: tokens.divider,
+                    },
                   ]}
                 >
-                  <Text style={{ color: tokens.text, fontWeight: "700", fontSize: 12 }}>{p.label}</Text>
-                  <Text style={{ color: tokens.textSecondary, fontSize: 10 }}>
-                    {`${p.start}\n${p.end}`}
+                  <Text style={[styles.periodNum, { color: tokens.text, fontFamily: fonts.bold }]}>
+                    {p.label}
+                  </Text>
+                  <Text style={[styles.periodTime, { color: tokens.textSecondary, fontFamily: fonts.regular }]}>
+                    {p.start}
+                  </Text>
+                  <Text style={[styles.periodTime, { color: tokens.textSecondary, fontFamily: fonts.regular }]}>
+                    {p.end}
                   </Text>
                 </View>
               ))}
             </View>
 
-            <View style={{ flex: 1, flexDirection: "row" }}>
-              {dayIndexes.map((day) => {
+            <View style={{ width: gridCanvasW, height: gridHeight, position: "relative" }}>
+              {dayList.map((day, colIndex) => {
                 const dayCourses = visibleCourses.filter((c) => c.weekday === day);
                 const lanes = assignLanes(dayCourses);
                 const minPeriod = periods[0]?.index ?? 1;
                 const maxPeriod = periods[periods.length - 1]?.index ?? 12;
+                const date = weekDays[day - 1];
                 return (
                   <View
                     key={day}
                     style={[
                       styles.dayCol,
-                      { width: dayColW, height: gridHeight, borderColor: tokens.border },
+                      {
+                        left: colIndex * dayColW,
+                        width: dayColW,
+                        height: gridHeight,
+                        borderRightColor: tokens.gridLine,
+                      },
                     ]}
                   >
                     {periods.map((p) => (
                       <View
                         key={p.index}
-                        style={[
-                          styles.gridCell,
-                          { height: ROW_H, borderColor: tokens.border },
-                        ]}
+                        style={[styles.gridCell, { height: ROW_H, borderBottomColor: tokens.divider }]}
                       />
                     ))}
 
@@ -286,12 +411,12 @@ export function TimetableScreen(): React.JSX.Element {
                                     height: Math.max(h, ROW_H - 6),
                                     left: `${leftPct}%`,
                                     width: `${laneW}%`,
-                                    borderColor: tokens.glassBorder,
+                                    borderColor: tokens.courseRing,
                                   },
                                 ]}
                               >
                                 <BlurView
-                                  intensity={28}
+                                  intensity={26}
                                   style={StyleSheet.absoluteFill}
                                   tint={appearance === "dark" ? "dark" : "light"}
                                 />
@@ -299,18 +424,27 @@ export function TimetableScreen(): React.JSX.Element {
                                   style={[
                                     styles.courseInner,
                                     {
-                                      borderColor: tokens.glassBorder,
-                                      backgroundColor:
-                                        appearance === "dark"
-                                          ? "rgba(255,255,255,0.06)"
-                                          : "rgba(255,255,255,0.38)",
+                                      borderColor: tokens.courseRing,
+                                      backgroundColor: paint.fill,
                                     },
                                   ]}
                                 >
-                                  <Text numberOfLines={2} style={[styles.courseTitle, { color: paint.text }]}>
+                                  <Text
+                                    numberOfLines={2}
+                                    style={[
+                                      styles.courseTitle,
+                                      { color: tokens.courseTitle, fontFamily: fonts.bold },
+                                    ]}
+                                  >
                                     {course.title}
                                   </Text>
-                                  <Text numberOfLines={1} style={[styles.courseSub, { color: paint.text }]}>
+                                  <Text
+                                    numberOfLines={1}
+                                    style={[
+                                      styles.courseSub,
+                                      { color: tokens.courseSubtitle, fontFamily: fonts.regular },
+                                    ]}
+                                  >
                                     {course.classroom ?? "教室待定"}
                                   </Text>
                                 </View>
@@ -330,24 +464,28 @@ export function TimetableScreen(): React.JSX.Element {
   );
 }
 
-function MenuRow(props: { label: string; onPress: () => void }): React.JSX.Element {
+function MenuRow(props: { label: string; color: string; onPress: () => void }): React.JSX.Element {
   return (
-    <Pressable onPress={props.onPress} style={{ paddingVertical: 12 }}>
-      <Text style={{ fontSize: 15, fontWeight: "600" }}>{props.label}</Text>
+    <Pressable onPress={props.onPress} style={styles.menuRow}>
+      <Text style={[styles.menuRowText, { color: props.color }]}>{props.label}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  topBar: {
-    paddingHorizontal: 10,
-    gap: 6,
+  scrollContent: {
+    paddingTop: 8,
+    paddingHorizontal: 20,
   },
-  topRow: {
+  appHeader: {
+    gap: 6,
+    paddingBottom: 12,
+  },
+  headerRow1: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    justifyContent: "space-between",
   },
   iconBtn: {
     width: 36,
@@ -360,63 +498,122 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    gap: 4,
   },
-  title: {
-    fontSize: 18,
-    fontWeight: "800",
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    maxWidth: "72%",
   },
-  subRow: {
+  weekSubtitleRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingBottom: 6,
+    justifyContent: "center",
+    gap: 8,
   },
-  month: { fontSize: 13 },
-  weekNav: { flexDirection: "row", alignItems: "center", gap: 6 },
-  weekLabel: { fontWeight: "800" },
-  gridWrap: {
-    alignSelf: "center",
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 14,
+  weekSubtitle: {
+    fontSize: 14,
+    fontWeight: "400",
+    minWidth: 80,
+    textAlign: "center",
+  },
+  dayStrip: {
+    borderRadius: 12,
+    overflow: "hidden",
+    marginBottom: 10,
+    minHeight: 56,
+  },
+  dayStripFill: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  dayStripRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 6,
+    gap: 2,
+  },
+  monthSmall: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  weekTiny: {
+    fontSize: 10,
+    fontWeight: "400",
+  },
+  dayHeadCell: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 4,
+  },
+  weekdayTiny: {
+    fontSize: 10,
+    fontWeight: "400",
+  },
+  dateSmall: {
+    fontSize: 11,
+  },
+  scheduleBody: {
+    flexDirection: "row",
+    alignItems: "stretch",
+    borderRadius: 12,
     overflow: "hidden",
   },
-  headerRow: { flexDirection: "row" },
-  corner: { borderRightWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth },
-  dayHead: {
-    borderRightWidth: StyleSheet.hairlineWidth,
+  timeCol: {
+    borderRightWidth: 1,
+    overflow: "hidden",
+    position: "relative",
+  },
+  timeColFill: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  timeCell: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     alignItems: "center",
     justifyContent: "center",
-  },
-  leftCell: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderRightWidth: StyleSheet.hairlineWidth,
+    gap: 2,
     paddingHorizontal: 4,
-    justifyContent: "center",
+  },
+  periodNum: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  periodTime: {
+    fontSize: 9,
+    fontWeight: "400",
   },
   dayCol: {
+    position: "absolute",
+    top: 0,
     borderRightWidth: StyleSheet.hairlineWidth,
-    position: "relative",
   },
   gridCell: {
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   courseAbs: {
     position: "absolute",
-    borderRadius: 12,
+    borderRadius: 14,
     overflow: "hidden",
     borderWidth: 1,
   },
   courseInner: {
     flex: 1,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
+    padding: 6,
     justifyContent: "flex-start",
-    backgroundColor: "rgba(255,255,255,0.08)",
   },
-  courseTitle: { fontSize: 12, fontWeight: "800" },
-  courseSub: { fontSize: 11, marginTop: 2, opacity: 0.78 },
+  courseTitle: {
+    fontSize: 9,
+    fontWeight: "700",
+    lineHeight: 11,
+  },
+  courseSub: {
+    fontSize: 8,
+    marginTop: 1,
+    lineHeight: 10,
+  },
   menuBackdrop: {
     flex: 1,
     backgroundColor: "rgba(15,20,25,0.25)",
@@ -425,11 +622,28 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   menuCard: {
+    alignSelf: "flex-end",
+    minWidth: 140,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingVertical: 4,
+    paddingHorizontal: 0,
+  },
+  menuCardWide: {
     alignSelf: "stretch",
     borderRadius: 14,
     borderWidth: 1,
     padding: 12,
     gap: 4,
+  },
+  menuRow: {
+    minHeight: 38,
+    justifyContent: "center",
+    paddingHorizontal: 12,
+  },
+  menuRowText: {
+    fontSize: 14,
+    fontWeight: "400",
   },
   ttRow: {
     flexDirection: "row",
