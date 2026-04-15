@@ -6,22 +6,20 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "@/theme/ThemeContext";
 import { PEN } from "@/ui/pen";
 
-/** Centered nav title (17 / 600) — secondary screens in Pencil (`status` row pattern). */
-interface ScreenHeaderProps {
+/** Large title row like `Geist` 28 / 700 in Pencil (`导入课表`, `功能`, `全部课程`, …). */
+export function HeroHeader(props: {
   title: string;
   showBack?: boolean;
   right?: React.ReactNode;
-}
-
-export function ScreenHeader(props: ScreenHeaderProps): React.JSX.Element {
+}): React.JSX.Element {
   const { tokens, fonts } = useAppTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const showBack = props.showBack ?? true;
 
   return (
-    <View style={[styles.wrap, { paddingTop: insets.top + 4 }]}>
-      <View style={styles.row}>
+    <View style={{ paddingTop: insets.top + 4, paddingBottom: 12 }}>
+      <View style={[styles.row, { paddingHorizontal: PEN.padH }]}>
         {showBack ? (
           <Pressable
             accessibilityRole="button"
@@ -30,48 +28,41 @@ export function ScreenHeader(props: ScreenHeaderProps): React.JSX.Element {
             onPress={() => router.back()}
             style={styles.back}
           >
-            <Ionicons color={tokens.text} name="chevron-back" size={22} />
+            <Ionicons color={tokens.text} name="chevron-back" size={18} />
           </Pressable>
-        ) : (
-          <View style={styles.side} />
-        )}
+        ) : null}
         <Text
-          style={[styles.title, { color: tokens.text, fontFamily: fonts.semibold }]}
+          style={[styles.title, { color: tokens.text, fontFamily: fonts.bold }]}
           numberOfLines={1}
         >
           {props.title}
         </Text>
-        <View style={styles.side}>{props.right}</View>
+        <View style={styles.right}>{props.right}</View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: {
-    paddingBottom: 12,
-  },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: PEN.padH,
-    minHeight: 44,
+    gap: 8,
   },
   back: {
     width: 28,
-    height: 36,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  side: {
-    minWidth: 28,
+    height: 28,
     alignItems: "center",
     justifyContent: "center",
   },
   title: {
     flex: 1,
-    textAlign: "center",
-    fontSize: 17,
-    fontWeight: "600",
+    fontSize: 28,
+    fontWeight: "700",
+  },
+  right: {
+    minWidth: 28,
+    alignItems: "flex-end",
+    justifyContent: "center",
   },
 });

@@ -12,15 +12,16 @@ import {
   View,
 } from "react-native";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { ScreenHeader } from "@/components/ScreenHeader";
+import { HeroHeader } from "@/components/HeroHeader";
 import { patchCourse, removeCourse } from "@/state/actions";
 import { useAppStore } from "@/state/store";
 import { useAppTheme } from "@/theme/ThemeContext";
+import { PEN, penCard, penScrollContent } from "@/ui/pen";
 import type { CourseMaterial } from "@nju/contracts";
 import { createId, nowIso } from "@nju/domain";
 
 export default function CourseDetailScreen(): React.JSX.Element {
-  const { tokens } = useAppTheme();
+  const { tokens, fonts } = useAppTheme();
   const router = useRouter();
   const params = useLocalSearchParams<{ courseId: string }>();
   const courseId = params.courseId;
@@ -45,8 +46,8 @@ export default function CourseDetailScreen(): React.JSX.Element {
   if (!course) {
     return (
       <View style={[styles.root, { backgroundColor: tokens.bg }]}>
-        <ScreenHeader title="课程详情" />
-        <Text style={{ color: tokens.textSecondary, padding: 16 }}>未找到课程。</Text>
+        <HeroHeader title="课程详情" />
+        <Text style={{ color: tokens.textSecondary, padding: 20, fontSize: 14 }}>未找到课程。</Text>
       </View>
     );
   }
@@ -102,65 +103,99 @@ export default function CourseDetailScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.root, { backgroundColor: tokens.bg }]}>
-      <ScreenHeader
+      <HeroHeader
         right={
           <Pressable hitSlop={10} onPress={toggleEdit}>
-            <Ionicons color={tokens.accent} name={editing ? "checkmark" : "pencil"} size={20} />
+            {editing ? (
+              <View
+                style={[
+                  styles.editChip,
+                  { backgroundColor: tokens.accent },
+                ]}
+              >
+                <Ionicons color={tokens.onAccent} name="checkmark" size={14} />
+                <Text style={{ color: tokens.onAccent, fontSize: 12, fontFamily: fonts.regular }}>
+                  编辑中
+                </Text>
+              </View>
+            ) : (
+              <Ionicons color={tokens.text} name="pencil" size={18} />
+            )}
           </Pressable>
         }
-        title={course.title}
+        title="课程详情"
       />
 
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 120 }}>
-        <Text style={{ color: tokens.textSecondary, fontSize: 12, lineHeight: 16 }}>
-          其余信息可由你补充；空白项会在浏览态给出轻提示（当前为工程实现版）。
+      <ScrollView contentContainerStyle={penScrollContent(120)}>
+        <Text style={{ color: tokens.text, fontSize: 17, fontWeight: "600", fontFamily: fonts.semibold }}>
+          {course.title}
+        </Text>
+
+        <Text
+          style={{
+            color: tokens.textSecondary,
+            fontSize: 11,
+            lineHeight: 15,
+            fontFamily: fonts.regular,
+          }}
+        >
+          提示：未编辑时显示铅笔图标，进入编辑模式后切换为打勾。
         </Text>
 
         <Link href={`/courses/${course.id}/reminder`} asChild>
-          <Pressable style={[styles.card, { backgroundColor: tokens.surface, borderColor: tokens.border }]}>
-            <Text style={{ color: tokens.text, fontWeight: "900" }}>设置课程提醒</Text>
-            <Text style={{ color: tokens.textSecondary, marginTop: 6, fontSize: 12 }}>
-              按课程维度配置提前量与提醒方式
-            </Text>
+          <Pressable
+            style={[
+              styles.compactRow,
+              { backgroundColor: tokens.surface, borderColor: tokens.border },
+            ]}
+          >
+            <Text style={{ color: tokens.text, fontSize: 15, fontFamily: fonts.regular }}>设置课程提醒</Text>
+            <Text style={{ color: tokens.tertiary, fontSize: 18 }}>›</Text>
           </Pressable>
         </Link>
 
-        <View style={[styles.card, { backgroundColor: tokens.surface, borderColor: tokens.border }]}>
-          <Text style={{ color: tokens.text, fontWeight: "900" }}>课程网站</Text>
+        <View style={penCard(tokens.surface, tokens.border)}>
+          <Text style={{ color: tokens.text, fontSize: 16, fontWeight: "600", fontFamily: fonts.semibold }}>
+            课程网站
+          </Text>
           {editing ? (
             <TextInput
               onChangeText={setWebsite}
               placeholder="https://..."
               placeholderTextColor={tokens.textSecondary}
-              style={[styles.input, { borderColor: tokens.border, color: tokens.text }]}
+              style={[styles.input, { borderColor: tokens.border, color: tokens.text, backgroundColor: tokens.wash }]}
               value={website}
             />
           ) : (
-            <Text style={{ color: tokens.textSecondary, marginTop: 8 }}>{website.trim() || "（空）点击右上角编辑填写"}</Text>
+            <Text style={{ color: tokens.textSecondary, fontSize: 14, fontFamily: fonts.regular }}>
+              {website.trim() || "（空）点击右上角编辑填写"}
+            </Text>
           )}
-          <Pressable onPress={openWebsite} style={{ marginTop: 10 }}>
-            <Text style={{ color: tokens.accent, fontWeight: "800" }}>在浏览器打开</Text>
+          <Pressable onPress={openWebsite} style={{ marginTop: 4 }}>
+            <Text style={{ color: tokens.accent, fontWeight: "600", fontSize: 14, fontFamily: fonts.semibold }}>
+              在浏览器打开
+            </Text>
           </Pressable>
         </View>
 
-        <View style={[styles.card, { backgroundColor: tokens.surface, borderColor: tokens.border }]}>
+        <View style={penCard(tokens.surface, tokens.border)}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-            <Text style={{ color: tokens.text, fontWeight: "900" }}>资料</Text>
+            <Text style={{ color: tokens.text, fontSize: 16, fontWeight: "600", fontFamily: fonts.semibold }}>资料</Text>
             {editing ? (
               <Pressable onPress={addMockMaterial}>
-                <Text style={{ color: tokens.accent, fontWeight: "900" }}>+ 添加（示例）</Text>
+                <Text style={{ color: tokens.accent, fontWeight: "600", fontSize: 14 }}>+ 添加（示例）</Text>
               </Pressable>
             ) : null}
           </View>
           {materials.length === 0 ? (
-            <Text style={{ color: tokens.textSecondary, marginTop: 8 }}>暂无资料</Text>
+            <Text style={{ color: tokens.textSecondary, fontSize: 14, fontFamily: fonts.regular }}>暂无资料</Text>
           ) : (
             materials.map((m) => (
               <View key={m.id} style={styles.matRow}>
-                <Text style={{ color: tokens.text, flex: 1 }}>{m.name}</Text>
+                <Text style={{ color: tokens.text, flex: 1, fontSize: 15, fontFamily: fonts.regular }}>{m.name}</Text>
                 {editing ? (
                   <Pressable hitSlop={10} onPress={() => removeMaterial(m.id)}>
-                    <Text style={{ color: tokens.accent, fontWeight: "900" }}>×</Text>
+                    <Text style={{ color: tokens.accent, fontWeight: "600" }}>×</Text>
                   </Pressable>
                 ) : null}
               </View>
@@ -168,8 +203,8 @@ export default function CourseDetailScreen(): React.JSX.Element {
           )}
         </View>
 
-        <View style={[styles.card, { backgroundColor: tokens.surface, borderColor: tokens.border }]}>
-          <Text style={{ color: tokens.text, fontWeight: "900" }}>备注</Text>
+        <View style={penCard(tokens.surface, tokens.border)}>
+          <Text style={{ color: tokens.text, fontSize: 16, fontWeight: "600", fontFamily: fonts.semibold }}>备注</Text>
           {editing ? (
             <TextInput
               multiline
@@ -178,17 +213,33 @@ export default function CourseDetailScreen(): React.JSX.Element {
               placeholderTextColor={tokens.textSecondary}
               style={[
                 styles.input,
-                { borderColor: tokens.border, color: tokens.text, minHeight: 96, textAlignVertical: "top" },
+                {
+                  borderColor: tokens.border,
+                  color: tokens.text,
+                  minHeight: 96,
+                  textAlignVertical: "top",
+                  backgroundColor: tokens.wash,
+                },
               ]}
               value={notes}
             />
           ) : (
-            <Text style={{ color: tokens.textSecondary, marginTop: 8 }}>{notes.trim() || "（空）"}</Text>
+            <Text style={{ color: tokens.textSecondary, fontSize: 14, fontFamily: fonts.regular }}>
+              {notes.trim() || "（空）"}
+            </Text>
           )}
         </View>
 
-        <Pressable onPress={() => setDeleteOpen(true)} style={{ paddingVertical: 14 }}>
-          <Text style={{ color: tokens.danger, fontWeight: "900", textAlign: "center" }}>删除课程</Text>
+        <Pressable
+          onPress={() => setDeleteOpen(true)}
+          style={[
+            styles.delOutline,
+            { borderColor: tokens.border, backgroundColor: tokens.surface },
+          ]}
+        >
+          <Text style={{ color: tokens.danger, fontWeight: "600", fontSize: 15, fontFamily: fonts.semibold }}>
+            删除课程
+          </Text>
         </Pressable>
       </ScrollView>
 
@@ -212,22 +263,42 @@ export default function CourseDetailScreen(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  card: {
+  editChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: PEN.radiusPill,
+    paddingHorizontal: 10,
+    height: 30,
+    gap: 4,
+  },
+  compactRow: {
+    minHeight: PEN.rowCompactHeight,
+    borderRadius: PEN.radiusCard,
     borderWidth: 1,
-    borderRadius: 14,
-    padding: 14,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   input: {
-    marginTop: 10,
+    marginTop: 8,
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: PEN.radiusCardDense,
     paddingHorizontal: 12,
     paddingVertical: 10,
+    fontSize: 15,
   },
   matRow: {
-    marginTop: 10,
+    marginTop: 8,
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+  },
+  delOutline: {
+    borderRadius: PEN.radiusCardDense,
+    borderWidth: 1,
+    minHeight: 48,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

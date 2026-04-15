@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import React from "react";
 import {
   Alert,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,15 +10,16 @@ import {
   View,
 } from "react-native";
 import { AppSwitch } from "@/components/AppSwitch";
-import { CapsuleButton } from "@/components/CapsuleButton";
-import { ScreenHeader } from "@/components/ScreenHeader";
+import { HeroHeader } from "@/components/HeroHeader";
 import { saveNewCourse } from "@/state/actions";
 import { useAppStore } from "@/state/store";
 import { useAppTheme } from "@/theme/ThemeContext";
+import type { ThemeTokens } from "@/theme/tokens";
+import { PEN, penCard, penScrollContent, penSectionTitle } from "@/ui/pen";
 import type { WeekRule } from "@nju/contracts";
 
 export default function ManualAddCourseScreen(): React.JSX.Element {
-  const { tokens } = useAppTheme();
+  const { tokens, fonts } = useAppTheme();
   const router = useRouter();
   const timetableId = useAppStore((s) => s.state.selectedTimetableId);
 
@@ -61,46 +63,80 @@ export default function ManualAddCourseScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.root, { backgroundColor: tokens.bg }]}>
-      <ScreenHeader title="手动添加课程" />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 40 }}>
-        <Field
-          description="课程名称（必填）"
-          label="课程名称"
-          onChangeText={setTitle}
-          tokens={tokens}
-          value={title}
-        />
-        <Field
-          description="任课教师（可选）"
-          label="教师"
-          onChangeText={setTeacher}
-          tokens={tokens}
-          value={teacher}
-        />
-        <Field
-          description="教室（可选）"
-          label="教室"
-          onChangeText={setClassroom}
-          tokens={tokens}
-          value={classroom}
-        />
-
-        <Row label="显示在周课表" tokens={tokens} trailing={<AppSwitch onValueChange={setShowOnGrid} value={showOnGrid} />} />
+      <HeroHeader title="手动添加课程" />
+      <ScrollView contentContainerStyle={penScrollContent(48, true)}>
+        <Text style={penSectionTitle(tokens.textSecondary, fonts.semibold)}>基本信息</Text>
+        <View style={penCard(tokens.surface, tokens.border, 14)}>
+          <Field label="课程名称" tokens={tokens} description="必填" onChangeText={setTitle} value={title} fonts={fonts} />
+          <Field label="教师" tokens={tokens} description="可选" onChangeText={setTeacher} value={teacher} fonts={fonts} />
+          <Field label="教室" tokens={tokens} description="可选" onChangeText={setClassroom} value={classroom} fonts={fonts} />
+        </View>
 
         {showOnGrid ? (
           <>
-            <Text style={[styles.section, { color: tokens.textSecondary }]}>上课时间</Text>
-            <WeekdayPicker onChange={setWeekday} tokens={tokens} value={weekday} />
-            <View style={{ flexDirection: "row", gap: 10 }}>
-              <SmallField label="开始节次" onChangeText={setStartPeriod} tokens={tokens} value={startPeriod} />
-              <SmallField label="结束节次" onChangeText={setEndPeriod} tokens={tokens} value={endPeriod} />
+            <Text style={penSectionTitle(tokens.textSecondary, fonts.semibold)}>时间与节次</Text>
+            <View style={penCard(tokens.surface, tokens.border, 14)}>
+              <Text style={{ color: tokens.textSecondary, fontSize: 12, fontFamily: fonts.regular }}>星期</Text>
+              <WeekdayPicker fonts={fonts} onChange={setWeekday} tokens={tokens} value={weekday} />
+              <View style={{ flexDirection: "row", gap: 10 }}>
+                <SmallField fonts={fonts} label="开始节次" onChangeText={setStartPeriod} tokens={tokens} value={startPeriod} />
+                <SmallField fonts={fonts} label="结束节次" onChangeText={setEndPeriod} tokens={tokens} value={endPeriod} />
+              </View>
             </View>
-            <Text style={[styles.section, { color: tokens.textSecondary }]}>周次规则</Text>
-            <WeekRulePicker onChange={setWeekRuleType} tokens={tokens} value={weekRuleType} />
+
+            <Text style={penSectionTitle(tokens.textSecondary, fonts.semibold)}>适用周次</Text>
+            <View style={penCard(tokens.surface, tokens.border, 14)}>
+              <WeekRulePicker fonts={fonts} onChange={setWeekRuleType} tokens={tokens} value={weekRuleType} />
+            </View>
           </>
         ) : null}
 
-        <CapsuleButton disabled={submitting} label={submitting ? "保存中…" : "保存"} onPress={onSave} />
+        <Pressable
+          disabled={submitting}
+          onPress={onSave}
+          style={[
+            styles.saveCta,
+            { backgroundColor: tokens.accent, opacity: submitting ? 0.7 : 1 },
+          ]}
+        >
+          <Text style={{ color: tokens.onAccent, fontWeight: "600", fontSize: 16, fontFamily: fonts.semibold }}>
+            {submitting ? "保存中…" : "保存课程"}
+          </Text>
+        </Pressable>
+
+        <Text
+          style={{
+            color: tokens.textSecondary,
+            fontSize: 11,
+            lineHeight: 15,
+            fontFamily: fonts.regular,
+          }}
+        >
+          保存后可在课表长按该课程快速编辑、删除、复制或拖拽改时间
+        </Text>
+
+        <Text style={penSectionTitle(tokens.textSecondary, fonts.semibold)}>显示设置</Text>
+        <View
+          style={[
+            styles.toggleRow,
+            { backgroundColor: tokens.surface, borderColor: tokens.border },
+          ]}
+        >
+          <Text style={{ color: tokens.text, fontSize: 15, flex: 1, fontFamily: fonts.regular }}>
+            显示在周课表
+          </Text>
+          <AppSwitch onValueChange={setShowOnGrid} value={showOnGrid} />
+        </View>
+        <Text
+          style={{
+            color: tokens.textSecondary,
+            fontSize: 12,
+            lineHeight: 17,
+            fontFamily: fonts.regular,
+          }}
+        >
+          用于网课/自学课时，可关闭显示但仍保留课程资料与提醒。
+        </Text>
       </ScrollView>
     </View>
   );
@@ -111,23 +147,27 @@ function Field(props: {
   description: string;
   value: string;
   onChangeText: (t: string) => void;
-  tokens: ReturnType<typeof useAppTheme>["tokens"];
+  tokens: ThemeTokens;
+  fonts: { regular?: string; semibold?: string };
 }): React.JSX.Element {
   return (
     <View style={{ gap: 6 }}>
-      <Text style={{ color: props.tokens.text, fontWeight: "700" }}>{props.label}</Text>
-      <Text style={{ color: props.tokens.textSecondary, fontSize: 12 }}>{props.description}</Text>
+      <Text style={{ color: props.tokens.text, fontWeight: "600", fontFamily: props.fonts.semibold }}>{props.label}</Text>
+      <Text style={{ color: props.tokens.textSecondary, fontSize: 12, fontFamily: props.fonts.regular }}>
+        {props.description}
+      </Text>
       <TextInput
         onChangeText={props.onChangeText}
         placeholderTextColor={props.tokens.textSecondary}
         style={{
           borderWidth: 1,
           borderColor: props.tokens.border,
-          backgroundColor: props.tokens.surface,
+          backgroundColor: props.tokens.wash,
           color: props.tokens.text,
-          borderRadius: 12,
+          borderRadius: PEN.radiusCardDense,
           paddingHorizontal: 12,
           paddingVertical: 10,
+          fontFamily: props.fonts.regular,
         }}
         value={props.value}
       />
@@ -139,11 +179,14 @@ function SmallField(props: {
   label: string;
   value: string;
   onChangeText: (t: string) => void;
-  tokens: ReturnType<typeof useAppTheme>["tokens"];
+  tokens: ThemeTokens;
+  fonts: { regular?: string; semibold?: string };
 }): React.JSX.Element {
   return (
     <View style={{ flex: 1, gap: 6 }}>
-      <Text style={{ color: props.tokens.text, fontWeight: "700" }}>{props.label}</Text>
+      <Text style={{ color: props.tokens.text, fontWeight: "600", fontSize: 13, fontFamily: props.fonts.semibold }}>
+        {props.label}
+      </Text>
       <TextInput
         keyboardType="number-pad"
         onChangeText={props.onChangeText}
@@ -151,11 +194,12 @@ function SmallField(props: {
         style={{
           borderWidth: 1,
           borderColor: props.tokens.border,
-          backgroundColor: props.tokens.surface,
+          backgroundColor: props.tokens.wash,
           color: props.tokens.text,
-          borderRadius: 12,
+          borderRadius: PEN.radiusCardDense,
           paddingHorizontal: 12,
           paddingVertical: 10,
+          fontFamily: props.fonts.regular,
         }}
         value={props.value}
       />
@@ -163,30 +207,11 @@ function SmallField(props: {
   );
 }
 
-function Row(props: {
-  label: string;
-  tokens: ReturnType<typeof useAppTheme>["tokens"];
-  trailing: React.ReactNode;
-}): React.JSX.Element {
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingVertical: 6,
-      }}
-    >
-      <Text style={{ color: props.tokens.text, fontWeight: "700" }}>{props.label}</Text>
-      {props.trailing}
-    </View>
-  );
-}
-
 function WeekdayPicker(props: {
   value: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   onChange: (v: 1 | 2 | 3 | 4 | 5 | 6 | 7) => void;
-  tokens: ReturnType<typeof useAppTheme>["tokens"];
+  tokens: ThemeTokens;
+  fonts: { regular?: string };
 }): React.JSX.Element {
   const labels = ["一", "二", "三", "四", "五", "六", "日"];
   return (
@@ -203,14 +228,15 @@ function WeekdayPicker(props: {
               paddingVertical: 8,
               borderRadius: 999,
               overflow: "hidden",
-              fontWeight: "800",
-              color: on ? "#FFFFFF" : props.tokens.text,
+              fontWeight: "600",
+              fontFamily: props.fonts.regular,
+              color: on ? props.tokens.onAccent : props.tokens.text,
               backgroundColor: on ? props.tokens.accent : props.tokens.surfaceMuted,
               borderWidth: on ? 0 : 1,
               borderColor: props.tokens.border,
             }}
           >
-           周{lb}
+            周{lb}
           </Text>
         );
       })}
@@ -221,7 +247,8 @@ function WeekdayPicker(props: {
 function WeekRulePicker(props: {
   value: WeekRule["type"];
   onChange: (v: WeekRule["type"]) => void;
-  tokens: ReturnType<typeof useAppTheme>["tokens"];
+  tokens: ThemeTokens;
+  fonts: { regular?: string };
 }): React.JSX.Element {
   const items: Array<{ key: WeekRule["type"]; label: string }> = [
     { key: "all", label: "每周" },
@@ -240,8 +267,9 @@ function WeekRulePicker(props: {
               paddingHorizontal: 12,
               paddingVertical: 8,
               borderRadius: 999,
-              fontWeight: "800",
-              color: on ? "#FFFFFF" : props.tokens.text,
+              fontWeight: "600",
+              fontFamily: props.fonts.regular,
+              color: on ? props.tokens.onAccent : props.tokens.text,
               backgroundColor: on ? props.tokens.accent : props.tokens.surfaceMuted,
               borderWidth: on ? 0 : 1,
               borderColor: props.tokens.border,
@@ -257,5 +285,19 @@ function WeekRulePicker(props: {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  section: { fontSize: 12, fontWeight: "800", letterSpacing: 0.3 },
+  saveCta: {
+    borderRadius: PEN.radiusPillCta,
+    minHeight: 52,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  toggleRow: {
+    minHeight: PEN.rowCompactHeight,
+    borderRadius: PEN.radiusCard,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
 });

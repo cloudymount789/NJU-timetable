@@ -10,7 +10,7 @@ import {
 import { AppSwitch } from "@/components/AppSwitch";
 import { CapsuleButton } from "@/components/CapsuleButton";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { ScreenHeader } from "@/components/ScreenHeader";
+import { HeroHeader } from "@/components/HeroHeader";
 import {
   deleteNonPrimaryTimetable,
   patchAppSettings,
@@ -23,11 +23,12 @@ import {
 } from "@/state/actions";
 import { useAppStore } from "@/state/store";
 import { useAppTheme } from "@/theme/ThemeContext";
+import { PEN, penCard, penScrollContent, penSectionTitle } from "@/ui/pen";
 import type { Timetable } from "@nju/contracts";
 import { setThemeMode } from "@nju/domain";
 
 export default function SettingsScreen(): React.JSX.Element {
-  const { tokens } = useAppTheme();
+  const { tokens, fonts } = useAppTheme();
   const settings = useAppStore((s) => s.state.settings);
   const timetables = useAppStore((s) => s.state.timetables);
 
@@ -40,12 +41,15 @@ export default function SettingsScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.root, { backgroundColor: tokens.bg }]}>
-      <ScreenHeader title="设置与外观" />
+      <HeroHeader title="设置与外观" />
 
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }}>
-        <Section title="主题">
-          <Row
+      <ScrollView contentContainerStyle={penScrollContent(40)}>
+        <Text style={penSectionTitle(tokens.textSecondary, fonts.semibold)}>外观</Text>
+        <View style={penCard(tokens.surface, tokens.border, 0)}>
+          <SettingsRow
+            fonts={fonts}
             label="深色模式"
+            tokens={tokens}
             trailing={
               <AppSwitch
                 onValueChange={(v) => patchAppSettings((s) => setThemeMode(s, v ? "dark" : "light"))}
@@ -53,23 +57,26 @@ export default function SettingsScreen(): React.JSX.Element {
               />
             }
           />
-          <Row
+          <View style={[styles.divider, { backgroundColor: tokens.divider }]} />
+          <SettingsRow
+            fonts={fonts}
             label="跟随系统"
-            trailing={
-              <AppSwitch
-                onValueChange={(v) => setFollowSystemFlag(v)}
-                value={settings.followSystem}
-              />
-            }
+            tokens={tokens}
+            trailing={<AppSwitch onValueChange={setFollowSystemFlag} value={settings.followSystem} />}
           />
-          <View style={{ gap: 6, marginTop: 6 }}>
-            <Text style={{ color: tokens.textSecondary, fontSize: 12 }}>全局主题色（十六进制）</Text>
+          <View style={{ paddingHorizontal: 16, paddingVertical: 12, gap: 8 }}>
+            <Text style={{ color: tokens.textSecondary, fontSize: 12, fontFamily: fonts.regular }}>
+              全局主题色（十六进制）
+            </Text>
             <TextInput
               autoCapitalize="none"
               onChangeText={setAccentDraft}
               placeholder="#ff6347"
               placeholderTextColor={tokens.textSecondary}
-              style={[styles.input, { borderColor: tokens.border, color: tokens.text, backgroundColor: tokens.surface }]}
+              style={[
+                styles.input,
+                { borderColor: tokens.border, color: tokens.text, backgroundColor: tokens.wash },
+              ]}
               value={accentDraft}
             />
             <CapsuleButton
@@ -83,55 +90,86 @@ export default function SettingsScreen(): React.JSX.Element {
               }}
             />
           </View>
-        </Section>
+        </View>
 
-        <Section title="课表显示">
-          <Row
+        <Text style={penSectionTitle(tokens.textSecondary, fonts.semibold)}>课表与作息</Text>
+        <View style={penCard(tokens.surface, tokens.border, 0)}>
+          <SettingsRow
+            fonts={fonts}
             label="隐藏周末"
+            tokens={tokens}
             trailing={<AppSwitch onValueChange={setHideWeekendFlag} value={settings.hideWeekend} />}
           />
-          <Row
+          <View style={[styles.divider, { backgroundColor: tokens.divider }]} />
+          <SettingsRow
+            fonts={fonts}
             label="隐藏无课行"
+            tokens={tokens}
             trailing={<AppSwitch onValueChange={setHideEmptyRowsFlag} value={settings.hideEmptyRows} />}
           />
-          <CapsuleButton label="重新随机生成课表配色" onPress={randomizeCourseColors} variant="secondary" />
-        </Section>
+          <View style={{ padding: 16 }}>
+            <CapsuleButton label="重新随机生成课表配色" onPress={randomizeCourseColors} variant="secondary" />
+          </View>
+        </View>
 
-        <Section title="课表管理">
-          <Text style={{ color: tokens.textSecondary, fontSize: 12, lineHeight: 16 }}>
+        <Text style={penSectionTitle(tokens.textSecondary, fonts.semibold)}>课表管理</Text>
+        <View style={penCard(tokens.surface, tokens.border, 16)}>
+          <Text style={{ color: tokens.textSecondary, fontSize: 12, lineHeight: 16, fontFamily: fonts.regular }}>
             主课表（本人）不可在此删除；至少保留一份课表。
           </Text>
           {timetables.map((tt) => (
-            <View key={tt.id} style={[styles.ttRow, { borderColor: tokens.border }]}>
+            <View
+              key={tt.id}
+              style={[
+                styles.ttRow,
+                { borderColor: tokens.border, marginTop: 10 },
+              ]}
+            >
               <View style={{ flex: 1 }}>
-                <Text style={{ color: tokens.text, fontWeight: "800" }}>{tt.name}</Text>
+                <Text style={{ color: tokens.text, fontWeight: "600", fontFamily: fonts.semibold }}>{tt.name}</Text>
                 {tt.isPrimary ? (
-                  <Text style={{ color: tokens.textSecondary, fontSize: 12, marginTop: 4 }}>主课表</Text>
+                  <Text style={{ color: tokens.textSecondary, fontSize: 12, marginTop: 4, fontFamily: fonts.regular }}>
+                    主课表
+                  </Text>
                 ) : null}
               </View>
               {tt.isPrimary ? null : (
-                <Text onPress={() => setDeleteTarget(tt)} style={{ color: tokens.accent, fontWeight: "900" }}>
+                <Text
+                  onPress={() => setDeleteTarget(tt)}
+                  style={{ color: tokens.accent, fontWeight: "600", fontFamily: fonts.semibold }}
+                >
                   删除
                 </Text>
               )}
             </View>
           ))}
-        </Section>
+        </View>
 
-        <Section title="数据与联动（工程版）">
-          <Row
+        <Text style={penSectionTitle(tokens.textSecondary, fonts.semibold)}>数据与分享</Text>
+        <View style={penCard(tokens.surface, tokens.border, 16)}>
+          <SettingsRow
+            fonts={fonts}
             label="关联考试与作业到待办"
+            tokens={tokens}
             trailing={
-              <AppSwitch
-                onValueChange={setLinkExamHomeworkToTodoFlag}
-                value={settings.linkExamHomeworkToTodo}
-              />
+              <AppSwitch onValueChange={setLinkExamHomeworkToTodoFlag} value={settings.linkExamHomeworkToTodo} />
             }
           />
-          <Text style={{ color: tokens.textSecondary, fontSize: 12 }}>
+          <Text style={{ color: tokens.textSecondary, fontSize: 12, lineHeight: 16, fontFamily: fonts.regular }}>
             说明：本版本先完成数据结构与 UI 主路径；通知调度、云端导入等按文档分期接入。
           </Text>
-        </Section>
+        </View>
+
+        <Text
+          style={{
+            color: tokens.textSecondary,
+            fontSize: 12,
+            lineHeight: 17,
+            fontFamily: fonts.regular,
+          }}
+        >
+          桌面小组件与锁屏课表在系统小组件库中添加
+        </Text>
       </ScrollView>
 
       <ConfirmDialog
@@ -157,21 +195,17 @@ export default function SettingsScreen(): React.JSX.Element {
   );
 }
 
-function Section(props: { title: string; children: React.ReactNode }): React.JSX.Element {
-  const { tokens } = useAppTheme();
+function SettingsRow(props: {
+  label: string;
+  trailing: React.ReactNode;
+  tokens: ReturnType<typeof useAppTheme>["tokens"];
+  fonts: ReturnType<typeof useAppTheme>["fonts"];
+}): React.JSX.Element {
   return (
-    <View style={{ gap: 10 }}>
-      <Text style={{ color: tokens.text, fontSize: 16, fontWeight: "900" }}>{props.title}</Text>
-      {props.children}
-    </View>
-  );
-}
-
-function Row(props: { label: string; trailing: React.ReactNode }): React.JSX.Element {
-  const { tokens } = useAppTheme();
-  return (
-    <View style={styles.row}>
-      <Text style={{ color: tokens.text, fontWeight: "700", flex: 1 }}>{props.label}</Text>
+    <View style={styles.settingsRow}>
+      <Text style={{ color: props.tokens.text, fontWeight: "400", flex: 1, fontSize: 15, fontFamily: props.fonts.regular }}>
+        {props.label}
+      </Text>
       {props.trailing}
     </View>
   );
@@ -179,22 +213,28 @@ function Row(props: { label: string; trailing: React.ReactNode }): React.JSX.Ele
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  row: {
+  settingsRow: {
+    minHeight: PEN.rowMinHeight,
+    paddingHorizontal: 16,
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
-    paddingVertical: 6,
+    justifyContent: "space-between",
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    marginLeft: 16,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: PEN.radiusCardDense,
     paddingHorizontal: 12,
     paddingVertical: 10,
+    fontSize: 15,
   },
   ttRow: {
     borderWidth: 1,
-    borderRadius: 14,
-    padding: 12,
+    borderRadius: PEN.radiusCard,
+    padding: 14,
     flexDirection: "row",
     alignItems: "center",
     gap: 10,

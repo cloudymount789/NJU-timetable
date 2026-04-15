@@ -1,21 +1,23 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import React from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
-import { ScreenHeader } from "@/components/ScreenHeader";
+import { HeroHeader } from "@/components/HeroHeader";
 import { useAppStore } from "@/state/store";
 import { useAppTheme } from "@/theme/ThemeContext";
+import { PEN } from "@/ui/pen";
 import type { Course } from "@nju/contracts";
 
 export default function AllCoursesScreen(): React.JSX.Element {
-  const { tokens } = useAppTheme();
+  const { tokens, fonts } = useAppTheme();
   const selectedId = useAppStore((s) => s.state.selectedTimetableId);
   const courses = useAppStore((s) => s.state.courses.filter((c) => c.timetableId === selectedId));
 
   const renderItem = ({ item }: { item: Course }): React.JSX.Element => (
     <Link asChild href={`/courses/${item.id}`}>
       <Pressable style={[styles.card, { backgroundColor: tokens.surface, borderColor: tokens.border }]}>
-        <Text style={[styles.title, { color: tokens.text }]}>{item.title}</Text>
-        <Text style={[styles.meta, { color: tokens.textSecondary }]}>
+        <Text style={[styles.title, { color: tokens.text, fontFamily: fonts.semibold }]}>{item.title}</Text>
+        <Text style={[styles.meta, { color: tokens.textSecondary, fontFamily: fonts.regular }]}>
           {formatCourseMeta(item)}
         </Text>
       </Pressable>
@@ -24,26 +26,52 @@ export default function AllCoursesScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.root, { backgroundColor: tokens.bg }]}>
-      <ScreenHeader
+      <HeroHeader
         right={
-          <Link asChild href="/courses/new">
-            <Pressable hitSlop={8}>
-              <Text style={{ color: tokens.accent, fontWeight: "800" }}>新增</Text>
+          <Link href="/courses/new" asChild>
+            <Pressable hitSlop={10} accessibilityLabel="新增课程">
+              <Ionicons color={tokens.text} name="add" size={22} />
             </Pressable>
           </Link>
         }
         title="全部课程"
       />
       <FlatList
-        contentContainerStyle={{ padding: 12, gap: 10, paddingBottom: 32 }}
+        contentContainerStyle={[
+          {
+            paddingHorizontal: PEN.padH,
+            paddingTop: 8,
+            paddingBottom: 32,
+            gap: PEN.gapList,
+          },
+        ]}
         data={courses}
         keyExtractor={(item) => item.id}
+        ListHeaderComponent={
+          <View style={{ gap: 12, marginBottom: 4 }}>
+            <Text style={{ color: tokens.textSecondary, fontSize: 14, fontFamily: fonts.regular }}>
+              包含未显示在课表上的课程
+            </Text>
+          </View>
+        }
         ListEmptyComponent={
-          <Text style={{ color: tokens.textSecondary, textAlign: "center", marginTop: 24 }}>
+          <Text style={{ color: tokens.textSecondary, textAlign: "center", marginTop: 24, fontSize: 14 }}>
             暂无课程，先在「课表」导入或手动添加。
           </Text>
         }
         renderItem={renderItem}
+        ListFooterComponent={
+          <Text
+            style={{
+              color: tokens.textSecondary,
+              fontSize: 12,
+              marginTop: 12,
+              fontFamily: fonts.regular,
+            }}
+          >
+            点击课程可进入课程详情页
+          </Text>
+        }
       />
     </View>
   );
@@ -59,10 +87,11 @@ function formatCourseMeta(course: Course): string {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   card: {
-    borderRadius: 14,
+    borderRadius: PEN.radiusCard,
     borderWidth: 1,
     padding: 14,
+    gap: 6,
   },
-  title: { fontSize: 16, fontWeight: "800" },
-  meta: { marginTop: 6, fontSize: 12, lineHeight: 16 },
+  title: { fontSize: 16, fontWeight: "600" },
+  meta: { fontSize: 12, lineHeight: 16 },
 });

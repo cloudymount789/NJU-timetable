@@ -4,15 +4,18 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from "react-nati
 import { AppSwitch } from "@/components/AppSwitch";
 import { CapsuleButton } from "@/components/CapsuleButton";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { PenHeaderChip } from "@/components/PenHeaderChip";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { patchTodo, removeTodo } from "@/state/actions";
 import { useAppStore } from "@/state/store";
 import { useAppTheme } from "@/theme/ThemeContext";
+import type { ThemeTokens } from "@/theme/tokens";
+import { PEN, penCard, penScrollContent, penSectionTitle } from "@/ui/pen";
 import type { Todo } from "@nju/contracts";
 import { nowIso } from "@nju/domain";
 
 export default function TodoDetailScreen(): React.JSX.Element {
-  const { tokens } = useAppTheme();
+  const { tokens, fonts } = useAppTheme();
   const router = useRouter();
   const params = useLocalSearchParams<{ todoId: string }>();
   const todoId = params.todoId;
@@ -50,7 +53,7 @@ export default function TodoDetailScreen(): React.JSX.Element {
     return (
       <View style={[styles.root, { backgroundColor: tokens.bg }]}>
         <ScreenHeader title="待办详情" />
-        <Text style={{ color: tokens.textSecondary, padding: 16 }}>未找到待办。</Text>
+        <Text style={{ color: tokens.textSecondary, padding: 20, fontSize: 14 }}>未找到待办。</Text>
       </View>
     );
   }
@@ -92,51 +95,57 @@ export default function TodoDetailScreen(): React.JSX.Element {
     <View style={[styles.root, { backgroundColor: tokens.bg }]}>
       <ScreenHeader
         right={
-          <CapsuleButton
-            label="主题色"
+          <PenHeaderChip
+            label="主题"
             onPress={() => Alert.alert("后续接入", "待办主题色将与全局主题令牌联动（色板选择器）。")}
-            variant="secondary"
+            variant="outline"
           />
         }
         title="待办详情"
       />
 
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 120 }}>
-        <LabeledInput label="标题" onChangeText={setTitle} tokens={tokens} value={title} />
-        <LabeledInput label="内容" multiline onChangeText={setBody} tokens={tokens} value={body} />
-        <LabeledInput label="地点" onChangeText={setPlace} tokens={tokens} value={place} />
+      <ScrollView contentContainerStyle={penScrollContent(120)}>
+        <View style={penCard(tokens.surface, tokens.border, 16)}>
+          <LabeledInput fonts={fonts} label="标题" onChangeText={setTitle} tokens={tokens} value={title} />
+          <LabeledInput fonts={fonts} label="内容" multiline onChangeText={setBody} tokens={tokens} value={body} />
+          <LabeledInput fonts={fonts} label="地点" onChangeText={setPlace} tokens={tokens} value={place} />
+        </View>
 
-        <Text style={{ color: tokens.text, fontWeight: "900" }}>种类（三选一）</Text>
-        {(
-          [
-            { key: "duration" as const, label: "持续时间" },
-            { key: "ddl" as const, label: "DDL" },
-            { key: "plain" as const, label: "普通" },
-          ] as const
-        ).map((item) => {
-          const on = kind === item.key;
-          return (
-            <CapsuleButton
-              key={item.key}
-              label={`${item.label}${on ? " \u2713" : ""}`}
-              onPress={() => setKind(item.key)}
-              variant={on ? "primary" : "secondary"}
-            />
-          );
-        })}
+        <Text style={penSectionTitle(tokens.textSecondary, fonts.semibold)}>种类（三选一）</Text>
+        <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
+          {(
+            [
+              { key: "duration" as const, label: "持续时间" },
+              { key: "ddl" as const, label: "DDL" },
+              { key: "plain" as const, label: "普通" },
+            ] as const
+          ).map((item) => {
+            const on = kind === item.key;
+            return (
+              <CapsuleButton
+                key={item.key}
+                label={`${item.label}${on ? " ✓" : ""}`}
+                onPress={() => setKind(item.key)}
+                variant={on ? "primary" : "secondary"}
+              />
+            );
+          })}
+        </View>
 
         {kind === "duration" ? (
-          <>
-            <LabeledInput label="开始时间（ISO 文本，占位）" onChangeText={setStartAt} tokens={tokens} value={startAt} />
-            <LabeledInput label="结束时间（ISO 文本，占位）" onChangeText={setEndAt} tokens={tokens} value={endAt} />
-          </>
+          <View style={penCard(tokens.surface, tokens.border, 16)}>
+            <LabeledInput fonts={fonts} label="开始时间" onChangeText={setStartAt} tokens={tokens} value={startAt} />
+            <LabeledInput fonts={fonts} label="结束时间" onChangeText={setEndAt} tokens={tokens} value={endAt} />
+          </View>
         ) : null}
         {kind === "ddl" ? (
-          <LabeledInput label="截止时间（ISO 文本，占位）" onChangeText={setDueAt} tokens={tokens} value={dueAt} />
+          <View style={penCard(tokens.surface, tokens.border, 16)}>
+            <LabeledInput fonts={fonts} label="截止时间" onChangeText={setDueAt} tokens={tokens} value={dueAt} />
+          </View>
         ) : null}
 
-        <Text style={{ color: tokens.text, fontWeight: "900" }}>重要程度</Text>
-        <View style={{ flexDirection: "row", gap: 8 }}>
+        <Text style={penSectionTitle(tokens.textSecondary, fonts.semibold)}>重要程度</Text>
+        <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
           {(
             [
               { key: 1 as const, label: "一般" },
@@ -148,7 +157,7 @@ export default function TodoDetailScreen(): React.JSX.Element {
             return (
               <CapsuleButton
                 key={x.key}
-                label={`${x.label}${on ? " \u2713" : ""}`}
+                label={`${x.label}${on ? " ✓" : ""}`}
                 onPress={() => setImportance(x.key)}
                 variant={on ? "primary" : "secondary"}
               />
@@ -156,25 +165,47 @@ export default function TodoDetailScreen(): React.JSX.Element {
           })}
         </View>
 
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <Text style={{ color: tokens.text, fontWeight: "900" }}>提醒</Text>
+        <View
+          style={[
+            styles.toggleCard,
+            { backgroundColor: tokens.surface, borderColor: tokens.border },
+          ]}
+        >
+          <Text style={{ color: tokens.text, fontWeight: "600", fontSize: 15, fontFamily: fonts.semibold }}>提醒</Text>
           <AppSwitch onValueChange={setRemind} value={remind} />
         </View>
 
-        <Text style={{ color: tokens.text, fontWeight: "900" }}>进度日志</Text>
-        {todo.progress.map((p) => (
-          <Text key={`${p.at}-${p.text}`} style={{ color: tokens.textSecondary, fontSize: 12 }}>
-            {p.at} · {p.text}
-          </Text>
-        ))}
-        <LabeledInput label="追加一条" onChangeText={setProgressText} tokens={tokens} value={progressText} />
-        <CapsuleButton label="追加进度" onPress={appendProgress} variant="secondary" />
+        <Text style={penSectionTitle(tokens.textSecondary, fonts.semibold)}>进度日志</Text>
+        <View style={penCard(tokens.surface, tokens.border, 16)}>
+          {todo.progress.map((p) => (
+            <Text key={`${p.at}-${p.text}`} style={{ color: tokens.textSecondary, fontSize: 12, fontFamily: fonts.regular }}>
+              {p.at} · {p.text}
+            </Text>
+          ))}
+          <LabeledInput fonts={fonts} label="追加一条" onChangeText={setProgressText} tokens={tokens} value={progressText} />
+          <CapsuleButton label="追加进度" onPress={appendProgress} variant="secondary" />
+        </View>
 
         <CapsuleButton label="保存" onPress={save} />
 
-        <Text onPress={() => setDeleteOpen(true)} style={{ color: tokens.danger, fontWeight: "900", textAlign: "center", marginTop: 10 }}>
-          删除待办
-        </Text>
+        <View
+          style={[
+            styles.delOutline,
+            { borderColor: tokens.border, backgroundColor: tokens.surface },
+          ]}
+        >
+          <Text
+            onPress={() => setDeleteOpen(true)}
+            style={{
+              color: tokens.danger,
+              fontWeight: "600",
+              fontFamily: fonts.semibold,
+              textAlign: "center",
+            }}
+          >
+            删除待办
+          </Text>
+        </View>
       </ScrollView>
 
       <ConfirmDialog
@@ -199,12 +230,15 @@ function LabeledInput(props: {
   label: string;
   value: string;
   onChangeText: (t: string) => void;
-  tokens: ReturnType<typeof useAppTheme>["tokens"];
+  tokens: ThemeTokens;
+  fonts: { regular?: string; semibold?: string };
   multiline?: boolean;
 }): React.JSX.Element {
   return (
     <View style={{ gap: 6 }}>
-      <Text style={{ color: props.tokens.text, fontWeight: "800" }}>{props.label}</Text>
+      <Text style={{ color: props.tokens.text, fontWeight: "600", fontFamily: props.fonts.semibold }}>
+        {props.label}
+      </Text>
       <TextInput
         multiline={props.multiline}
         onChangeText={props.onChangeText}
@@ -212,13 +246,15 @@ function LabeledInput(props: {
         style={{
           borderWidth: 1,
           borderColor: props.tokens.border,
-          backgroundColor: props.tokens.surface,
+          backgroundColor: props.tokens.wash,
           color: props.tokens.text,
-          borderRadius: 12,
+          borderRadius: PEN.radiusCardDense,
           paddingHorizontal: 12,
           paddingVertical: 10,
           minHeight: props.multiline ? 96 : undefined,
           textAlignVertical: props.multiline ? "top" : "center",
+          fontFamily: props.fonts.regular,
+          fontSize: 15,
         }}
         value={props.value}
       />
@@ -228,4 +264,19 @@ function LabeledInput(props: {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  toggleCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderRadius: PEN.radiusCard,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    minHeight: PEN.rowMinHeight,
+  },
+  delOutline: {
+    borderRadius: PEN.radiusCardDense,
+    borderWidth: 1,
+    minHeight: 48,
+    justifyContent: "center",
+  },
 });

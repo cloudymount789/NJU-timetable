@@ -1,20 +1,22 @@
 import { Link, useRouter } from "expo-router";
 import React from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { AppSwitch } from "@/components/AppSwitch";
 import { CapsuleButton } from "@/components/CapsuleButton";
-import { ScreenHeader } from "@/components/ScreenHeader";
+import { HeroHeader } from "@/components/HeroHeader";
+import { PenHeaderChip } from "@/components/PenHeaderChip";
 import { addTodo, patchTodo, removeTodo, setLinkExamHomeworkToTodoFlag } from "@/state/actions";
 import { useAppStore } from "@/state/store";
 import { useAppTheme } from "@/theme/ThemeContext";
+import { PEN } from "@/ui/pen";
 import type { Todo } from "@nju/contracts";
 import { sortTodosDefault, sortTodosManual } from "@nju/domain";
-import { AppSwitch } from "@/components/AppSwitch";
 
 type Filter = "all" | "active" | "done";
 type SortMode = "default" | "manual";
 
 export default function TodoTab(): React.JSX.Element {
-  const { tokens } = useAppTheme();
+  const { tokens, fonts } = useAppTheme();
   const router = useRouter();
   const todos = useAppStore((s) => s.state.todos);
   const linkOn = useAppStore((s) => s.state.settings.linkExamHomeworkToTodo);
@@ -55,7 +57,15 @@ export default function TodoTab(): React.JSX.Element {
 
   const renderItem = ({ item, index }: { item: Todo; index: number }): React.JSX.Element => (
     <View style={[styles.row, { borderColor: tokens.border, backgroundColor: tokens.surface }]}>
-      <Text style={{ color: tokens.textSecondary, width: 22, textAlign: "center", fontWeight: "900" }}>
+      <Text
+        style={{
+          color: tokens.textSecondary,
+          width: 22,
+          textAlign: "center",
+          fontWeight: "600",
+          fontFamily: fonts.semibold,
+        }}
+      >
         {index + 1}
       </Text>
       <Link asChild href={`/todo/${item.id}`}>
@@ -63,7 +73,9 @@ export default function TodoTab(): React.JSX.Element {
           <Text
             style={{
               color: tokens.text,
-              fontWeight: "800",
+              fontWeight: "600",
+              fontSize: 15,
+              fontFamily: fonts.semibold,
               textDecorationLine: item.completed ? "line-through" : "none",
               opacity: item.completed ? 0.55 : 1,
             }}
@@ -71,19 +83,28 @@ export default function TodoTab(): React.JSX.Element {
             {item.title}
           </Text>
           {item.kind === "duration" && item.startAt ? (
-            <Text style={{ color: tokens.accent, fontSize: 12 }}>{item.startAt}</Text>
+            <Text style={{ color: tokens.accent, fontSize: 12, fontFamily: fonts.regular }}>{item.startAt}</Text>
           ) : null}
           {item.kind === "ddl" && item.dueAt ? (
-            <Text style={{ color: tokens.textSecondary, fontSize: 12 }}>截止 {item.dueAt}</Text>
+            <Text style={{ color: tokens.textSecondary, fontSize: 12, fontFamily: fonts.regular }}>
+              截止 {item.dueAt}
+            </Text>
           ) : null}
         </Pressable>
       </Link>
       {batch ? (
         <Pressable
           onPress={() => removeTodo(item.id)}
-          style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: tokens.danger, alignItems: "center", justifyContent: "center" }}
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: 17,
+            backgroundColor: tokens.danger,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
         >
-          <Text style={{ color: "#fff", fontWeight: "900" }}>×</Text>
+          <Text style={{ color: tokens.onAccent, fontWeight: "700" }}>×</Text>
         </Pressable>
       ) : item.kind === "ddl" || item.kind === "plain" ? (
         <CapsuleButton
@@ -99,19 +120,23 @@ export default function TodoTab(): React.JSX.Element {
 
   return (
     <View style={[styles.root, { backgroundColor: tokens.bg }]}>
-      <ScreenHeader
-        showBack={false}
-        title="待办"
+      <HeroHeader
         right={
           <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-            <CapsuleButton label={batch ? "完成" : "批量"} onPress={() => setBatch((v) => !v)} variant="secondary" />
-            <CapsuleButton label="新建" onPress={onCreate} />
+            <PenHeaderChip
+              label={batch ? "完成" : "批量"}
+              onPress={() => setBatch((v) => !v)}
+              variant="outline"
+            />
+            <PenHeaderChip icon="add" label="新建" onPress={onCreate} variant="primary" />
           </View>
         }
+        showBack={false}
+        title="待办"
       />
 
-      <View style={{ paddingHorizontal: 16, paddingTop: 10, gap: 10 }}>
-        <View style={{ flexDirection: "row", gap: 10 }}>
+      <View style={{ paddingHorizontal: PEN.padH, paddingTop: 8, gap: 12 }}>
+        <View style={{ flexDirection: "row", gap: 16, flexWrap: "wrap" }}>
           {(
             [
               { key: "all" as const, label: "全部" },
@@ -125,7 +150,9 @@ export default function TodoTab(): React.JSX.Element {
                 key={x.key}
                 onPress={() => setFilter(x.key)}
                 style={{
-                  fontWeight: "900",
+                  fontWeight: "600",
+                  fontSize: 14,
+                  fontFamily: fonts.semibold,
                   color: on ? tokens.accent : tokens.textSecondary,
                 }}
               >
@@ -136,7 +163,7 @@ export default function TodoTab(): React.JSX.Element {
         </View>
 
         <View style={{ flexDirection: "row", gap: 14, alignItems: "center" }}>
-          <Text style={{ color: tokens.textSecondary, fontSize: 12 }}>排序</Text>
+          <Text style={{ color: tokens.textSecondary, fontSize: 12, fontFamily: fonts.regular }}>排序</Text>
           {(
             [
               { key: "default" as const, label: "默认" },
@@ -150,7 +177,8 @@ export default function TodoTab(): React.JSX.Element {
                 onPress={() => setSortMode(x.key)}
                 style={{
                   fontSize: 12,
-                  fontWeight: "800",
+                  fontWeight: "600",
+                  fontFamily: fonts.semibold,
                   color: on ? tokens.accent : tokens.textSecondary,
                 }}
               >
@@ -161,13 +189,20 @@ export default function TodoTab(): React.JSX.Element {
         </View>
 
         <View style={styles.linkRow}>
-          <Text style={{ color: tokens.text, fontWeight: "800", flex: 1 }}>关联考试与作业</Text>
+          <Text style={{ color: tokens.text, fontWeight: "600", flex: 1, fontSize: 15, fontFamily: fonts.semibold }}>
+            关联考试与作业
+          </Text>
           <AppSwitch onValueChange={setLinkExamHomeworkToTodoFlag} value={linkOn} />
         </View>
       </View>
 
       <FlatList
-        contentContainerStyle={{ padding: 16, gap: 10, paddingBottom: 40 }}
+        contentContainerStyle={{
+          paddingHorizontal: PEN.padH,
+          paddingTop: 12,
+          paddingBottom: 40,
+          gap: PEN.gapList,
+        }}
         data={visible}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
@@ -180,7 +215,7 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   row: {
     borderWidth: 1,
-    borderRadius: 14,
+    borderRadius: PEN.radiusCard,
     padding: 12,
     flexDirection: "row",
     alignItems: "center",
@@ -189,6 +224,6 @@ const styles = StyleSheet.create({
   linkRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 6,
+    paddingVertical: 8,
   },
 });

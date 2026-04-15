@@ -1,15 +1,16 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import { CapsuleButton } from "@/components/CapsuleButton";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { ScreenHeader } from "@/components/ScreenHeader";
+import { HeroHeader } from "@/components/HeroHeader";
+import { PenHeaderChip } from "@/components/PenHeaderChip";
 import { patchLog, removeLog } from "@/state/actions";
 import { useAppStore } from "@/state/store";
 import { useAppTheme } from "@/theme/ThemeContext";
+import { PEN, penCard, penScrollContent, penSectionTitle } from "@/ui/pen";
 
 export default function LogEditorScreen(): React.JSX.Element {
-  const { tokens } = useAppTheme();
+  const { tokens, fonts } = useAppTheme();
   const router = useRouter();
   const params = useLocalSearchParams<{ logId: string }>();
   const entry = useAppStore((s) => s.state.logs.find((l) => l.id === params.logId));
@@ -30,8 +31,8 @@ export default function LogEditorScreen(): React.JSX.Element {
   if (!entry || !params.logId) {
     return (
       <View style={[styles.root, { backgroundColor: tokens.bg }]}>
-        <ScreenHeader title="日志" />
-        <Text style={{ color: tokens.textSecondary, padding: 16 }}>未找到日志</Text>
+        <HeroHeader title="日志" />
+        <Text style={{ color: tokens.textSecondary, padding: 20, fontSize: 14 }}>未找到日志</Text>
       </View>
     );
   }
@@ -43,9 +44,9 @@ export default function LogEditorScreen(): React.JSX.Element {
 
   return (
     <View style={[styles.root, { backgroundColor: tokens.bg }]}>
-      <ScreenHeader
+      <HeroHeader
         right={
-          <CapsuleButton
+          <PenHeaderChip
             label={editing ? "完成" : "编辑"}
             onPress={() => {
               if (editing) {
@@ -54,45 +55,78 @@ export default function LogEditorScreen(): React.JSX.Element {
                 setEditing(true);
               }
             }}
+            variant={editing ? "primary" : "outline"}
           />
         }
         title="日志"
       />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 120 }}>
-        <Text style={{ color: tokens.textSecondary, fontSize: 12 }}>记录时间：{entry.createdAt}</Text>
-        <Text style={{ color: tokens.textSecondary, fontSize: 12 }}>最近更新：{entry.updatedAt}</Text>
-
-        <Text style={{ color: tokens.text, fontWeight: "900" }}>标题</Text>
-        <TextInput
-          editable={editing}
-          onChangeText={setTitle}
-          placeholderTextColor={tokens.textSecondary}
-          style={[styles.input, { borderColor: tokens.border, color: tokens.text, backgroundColor: tokens.surface }]}
-          value={title}
-        />
-
-        <Text style={{ color: tokens.text, fontWeight: "900" }}>正文</Text>
-        <TextInput
-          editable={editing}
-          multiline
-          onChangeText={setBody}
-          placeholderTextColor={tokens.textSecondary}
-          style={[
-            styles.input,
-            {
-              borderColor: tokens.border,
-              color: tokens.text,
-              backgroundColor: tokens.surface,
-              minHeight: 200,
-              textAlignVertical: "top",
-            },
-          ]}
-          value={body}
-        />
-
-        <Text onPress={() => setOpen(true)} style={{ color: tokens.danger, fontWeight: "900", textAlign: "center" }}>
-          删除日志
+      <ScrollView contentContainerStyle={penScrollContent(120)}>
+        <Text style={{ color: tokens.textSecondary, fontSize: 12, fontFamily: fonts.regular }}>
+          记录时间：{entry.createdAt}
         </Text>
+        <Text style={{ color: tokens.textSecondary, fontSize: 12, fontFamily: fonts.regular }}>
+          最近更新：{entry.updatedAt}
+        </Text>
+
+        <Text style={penSectionTitle(tokens.textSecondary, fonts.semibold)}>标题</Text>
+        <View style={penCard(tokens.surface, tokens.border, 12)}>
+          <TextInput
+            editable={editing}
+            onChangeText={setTitle}
+            placeholderTextColor={tokens.textSecondary}
+            style={[
+              styles.input,
+              {
+                borderColor: tokens.border,
+                color: tokens.text,
+                backgroundColor: tokens.wash,
+                fontFamily: fonts.regular,
+              },
+            ]}
+            value={title}
+          />
+        </View>
+
+        <Text style={penSectionTitle(tokens.textSecondary, fonts.semibold)}>正文</Text>
+        <View style={penCard(tokens.surface, tokens.border, 12)}>
+          <TextInput
+            editable={editing}
+            multiline
+            onChangeText={setBody}
+            placeholderTextColor={tokens.textSecondary}
+            style={[
+              styles.input,
+              {
+                borderColor: tokens.border,
+                color: tokens.text,
+                backgroundColor: tokens.wash,
+                minHeight: 220,
+                textAlignVertical: "top",
+                fontFamily: fonts.regular,
+              },
+            ]}
+            value={body}
+          />
+        </View>
+
+        <View
+          style={[
+            styles.delOutline,
+            { borderColor: tokens.border, backgroundColor: tokens.surface },
+          ]}
+        >
+          <Text
+            onPress={() => setOpen(true)}
+            style={{
+              color: tokens.danger,
+              fontWeight: "600",
+              fontFamily: fonts.semibold,
+              textAlign: "center",
+            }}
+          >
+            删除日志
+          </Text>
+        </View>
       </ScrollView>
 
       <ConfirmDialog
@@ -115,5 +149,11 @@ export default function LogEditorScreen(): React.JSX.Element {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  input: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 },
+  input: { borderWidth: 1, borderRadius: PEN.radiusCardDense, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15 },
+  delOutline: {
+    borderRadius: PEN.radiusCardDense,
+    borderWidth: 1,
+    minHeight: 48,
+    justifyContent: "center",
+  },
 });
