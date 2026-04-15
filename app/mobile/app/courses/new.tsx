@@ -220,24 +220,32 @@ function WeekdayPicker(props: {
         const v = (idx + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7;
         const on = props.value === v;
         return (
-          <Text
+          <Pressable
             key={lb}
+            accessibilityRole="button"
+            accessibilityState={{ selected: on }}
+            hitSlop={4}
             onPress={() => props.onChange(v)}
             style={{
               paddingHorizontal: 12,
               paddingVertical: 8,
               borderRadius: 999,
               overflow: "hidden",
-              fontWeight: "600",
-              fontFamily: props.fonts.regular,
-              color: on ? props.tokens.onAccent : props.tokens.text,
               backgroundColor: on ? props.tokens.accent : props.tokens.surfaceMuted,
               borderWidth: on ? 0 : 1,
               borderColor: props.tokens.border,
             }}
           >
-            周{lb}
-          </Text>
+            <Text
+              style={{
+                fontWeight: "600",
+                fontFamily: props.fonts.regular,
+                color: on ? props.tokens.onAccent : props.tokens.text,
+              }}
+            >
+              周{lb}
+            </Text>
+          </Pressable>
         );
       })}
     </View>
@@ -260,23 +268,31 @@ function WeekRulePicker(props: {
       {items.map((it) => {
         const on = props.value === it.key;
         return (
-          <Text
+          <Pressable
             key={it.key}
+            accessibilityRole="button"
+            accessibilityState={{ selected: on }}
+            hitSlop={4}
             onPress={() => props.onChange(it.key)}
             style={{
               paddingHorizontal: 12,
               paddingVertical: 8,
               borderRadius: 999,
-              fontWeight: "600",
-              fontFamily: props.fonts.regular,
-              color: on ? props.tokens.onAccent : props.tokens.text,
               backgroundColor: on ? props.tokens.accent : props.tokens.surfaceMuted,
               borderWidth: on ? 0 : 1,
               borderColor: props.tokens.border,
             }}
           >
-            {it.label}
-          </Text>
+            <Text
+              style={{
+                fontWeight: "600",
+                fontFamily: props.fonts.regular,
+                color: on ? props.tokens.onAccent : props.tokens.text,
+              }}
+            >
+              {it.label}
+            </Text>
+          </Pressable>
         );
       })}
     </View>

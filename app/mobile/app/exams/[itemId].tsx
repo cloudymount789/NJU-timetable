@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { HeroHeader } from "@/components/HeroHeader";
 import { removeExamHomework } from "@/state/actions";
@@ -47,14 +47,14 @@ export default function ExamDetailScreen(): React.JSX.Element {
           </Text>
         </View>
 
-        <View
+        <Pressable
+          onPress={() => setOpen(true)}
           style={[
             styles.delBtn,
             { borderColor: tokens.border, backgroundColor: tokens.surface },
           ]}
         >
           <Text
-            onPress={() => setOpen(true)}
             style={{
               color: tokens.danger,
               fontWeight: "600",
@@ -65,7 +65,7 @@ export default function ExamDetailScreen(): React.JSX.Element {
           >
             删除本条记录
           </Text>
-        </View>
+        </Pressable>
       </ScrollView>
       <ConfirmDialog
         cancelLabel="取消"

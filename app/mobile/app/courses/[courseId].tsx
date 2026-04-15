@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
-import { Link, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import {
   Alert,
@@ -142,17 +142,16 @@ export default function CourseDetailScreen(): React.JSX.Element {
           提示：未编辑时显示铅笔图标，进入编辑模式后切换为打勾。
         </Text>
 
-        <Link href={`/courses/${course.id}/reminder`} asChild>
-          <Pressable
-            style={[
-              styles.compactRow,
-              { backgroundColor: tokens.surface, borderColor: tokens.border },
-            ]}
-          >
-            <Text style={{ color: tokens.text, fontSize: 15, fontFamily: fonts.regular }}>设置课程提醒</Text>
-            <Text style={{ color: tokens.tertiary, fontSize: 18 }}>›</Text>
-          </Pressable>
-        </Link>
+        <Pressable
+          onPress={() => router.push(`/courses/${course.id}/reminder`)}
+          style={[
+            styles.compactRow,
+            { backgroundColor: tokens.surface, borderColor: tokens.border },
+          ]}
+        >
+          <Text style={{ color: tokens.text, fontSize: 15, fontFamily: fonts.regular }}>设置课程提醒</Text>
+          <Text style={{ color: tokens.tertiary, fontSize: 18 }}>›</Text>
+        </Pressable>
 
         <View style={penCard(tokens.surface, tokens.border)}>
           <Text style={{ color: tokens.text, fontSize: 16, fontWeight: "600", fontFamily: fonts.semibold }}>

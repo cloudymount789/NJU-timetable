@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import React from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { HeroHeader } from "@/components/HeroHeader";
@@ -10,6 +10,7 @@ import type { Course } from "@nju/contracts";
 
 export default function AllCoursesScreen(): React.JSX.Element {
   const { tokens, fonts } = useAppTheme();
+  const router = useRouter();
   const selectedId = useAppStore((s) => s.state.selectedTimetableId);
   const courses = useAppStore((s) => s.state.courses.filter((c) => c.timetableId === selectedId));
 
@@ -28,11 +29,14 @@ export default function AllCoursesScreen(): React.JSX.Element {
     <View style={[styles.root, { backgroundColor: tokens.bg }]}>
       <HeroHeader
         right={
-          <Link href="/courses/new" asChild>
-            <Pressable hitSlop={10} accessibilityLabel="新增课程">
-              <Ionicons color={tokens.text} name="add" size={22} />
-            </Pressable>
-          </Link>
+          <Pressable
+            accessibilityLabel="新增课程"
+            hitSlop={12}
+            onPress={() => router.push("/courses/new")}
+            style={{ padding: 4 }}
+          >
+            <Ionicons color={tokens.text} name="add" size={22} />
+          </Pressable>
         }
         title="全部课程"
       />

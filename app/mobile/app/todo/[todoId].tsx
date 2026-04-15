@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
-import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { AppSwitch } from "@/components/AppSwitch";
 import { CapsuleButton } from "@/components/CapsuleButton";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -188,14 +188,14 @@ export default function TodoDetailScreen(): React.JSX.Element {
 
         <CapsuleButton label="保存" onPress={save} />
 
-        <View
+        <Pressable
+          onPress={() => setDeleteOpen(true)}
           style={[
             styles.delOutline,
             { borderColor: tokens.border, backgroundColor: tokens.surface },
           ]}
         >
           <Text
-            onPress={() => setDeleteOpen(true)}
             style={{
               color: tokens.danger,
               fontWeight: "600",
@@ -205,7 +205,7 @@ export default function TodoDetailScreen(): React.JSX.Element {
           >
             删除待办
           </Text>
-        </View>
+        </Pressable>
       </ScrollView>
 
       <ConfirmDialog

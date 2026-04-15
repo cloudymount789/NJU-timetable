@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
-import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { HeroHeader } from "@/components/HeroHeader";
 import { PenHeaderChip } from "@/components/PenHeaderChip";
@@ -109,14 +109,14 @@ export default function LogEditorScreen(): React.JSX.Element {
           />
         </View>
 
-        <View
+        <Pressable
+          onPress={() => setOpen(true)}
           style={[
             styles.delOutline,
             { borderColor: tokens.border, backgroundColor: tokens.surface },
           ]}
         >
           <Text
-            onPress={() => setOpen(true)}
             style={{
               color: tokens.danger,
               fontWeight: "600",
@@ -126,7 +126,7 @@ export default function LogEditorScreen(): React.JSX.Element {
           >
             删除日志
           </Text>
-        </View>
+        </Pressable>
       </ScrollView>
 
       <ConfirmDialog

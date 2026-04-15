@@ -1,6 +1,7 @@
 import React from "react";
 import {
   Alert,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -134,12 +135,9 @@ export default function SettingsScreen(): React.JSX.Element {
                 ) : null}
               </View>
               {tt.isPrimary ? null : (
-                <Text
-                  onPress={() => setDeleteTarget(tt)}
-                  style={{ color: tokens.accent, fontWeight: "600", fontFamily: fonts.semibold }}
-                >
-                  删除
-                </Text>
+                <Pressable hitSlop={8} onPress={() => setDeleteTarget(tt)}>
+                  <Text style={{ color: tokens.accent, fontWeight: "600", fontFamily: fonts.semibold }}>删除</Text>
+                </Pressable>
               )}
             </View>
           ))}

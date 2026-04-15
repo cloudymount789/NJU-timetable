@@ -146,18 +146,18 @@ export default function TodoTab(): React.JSX.Element {
           ).map((x) => {
             const on = filter === x.key;
             return (
-              <Text
-                key={x.key}
-                onPress={() => setFilter(x.key)}
-                style={{
-                  fontWeight: "600",
-                  fontSize: 14,
-                  fontFamily: fonts.semibold,
-                  color: on ? tokens.accent : tokens.textSecondary,
-                }}
-              >
-                {x.label}
-              </Text>
+              <Pressable key={x.key} hitSlop={6} onPress={() => setFilter(x.key)}>
+                <Text
+                  style={{
+                    fontWeight: "600",
+                    fontSize: 14,
+                    fontFamily: fonts.semibold,
+                    color: on ? tokens.accent : tokens.textSecondary,
+                  }}
+                >
+                  {x.label}
+                </Text>
+              </Pressable>
             );
           })}
         </View>
@@ -172,18 +172,18 @@ export default function TodoTab(): React.JSX.Element {
           ).map((x) => {
             const on = sortMode === x.key;
             return (
-              <Text
-                key={x.key}
-                onPress={() => setSortMode(x.key)}
-                style={{
-                  fontSize: 12,
-                  fontWeight: "600",
-                  fontFamily: fonts.semibold,
-                  color: on ? tokens.accent : tokens.textSecondary,
-                }}
-              >
-                {x.label}
-              </Text>
+              <Pressable key={x.key} hitSlop={6} onPress={() => setSortMode(x.key)}>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "600",
+                    fontFamily: fonts.semibold,
+                    color: on ? tokens.accent : tokens.textSecondary,
+                  }}
+                >
+                  {x.label}
+                </Text>
+              </Pressable>
             );
           })}
         </View>
